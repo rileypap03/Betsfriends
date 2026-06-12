@@ -120,7 +120,7 @@ function StatusBadge({ status, long }: { status: string; long: string }) {
         color: isLive ? '#FF4D6D' : isFinished ? '#8A9BBF' : '#C9A557',
       }}
     >
-      {isLive ? '● LIVE' : isFinished ? 'FT' : long}
+      {isLive ? '● LIVE' : isFinished ? 'FT' : ''}
     </span>
   );
 }
