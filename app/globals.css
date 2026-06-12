@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;900&display=swap');
+
+:root {
+  --bg-deep: #020F2A;
+  --bg-card: #0A1A3D;
+  --bg-hover: #11244F;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text: #FFFFFF;
+  --text-muted: #8A9BBF;
+  --text-dim: #5A6B8C;
+  --gold: #C9A557;
+  --gold-bright: #E5C56E;
+  --green-bright: #00C775;
+  --red-bright: #FF4D6D;
+}
+
+html, body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(201, 165, 87, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.05), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@layer components {
+  .card {
+    @apply bg-bg-card border border-white/10 rounded-xl;
+  }
+
+  .card-hover {
+    @apply hover:bg-bg-hover hover:border-white/20 transition-colors;
+  }
+
+  .display-title {
+    font-family: 'Anton', sans-serif;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .eyebrow {
+    @apply text-[10px] font-bold tracking-[2px] text-text-muted uppercase;
+  }
+
+  .btn-primary {
+    @apply bg-gold text-bg-deep font-display px-4 py-2 rounded-md text-sm tracking-wider uppercase hover:bg-gold-bright transition-colors disabled:bg-text-dim disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border border-white/20 text-white px-3 py-1.5 rounded-md text-xs hover:border-white/40 transition-colors;
+  }
+
+  .input-base {
+    @apply bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-gold transition-colors placeholder:text-text-dim;
+  }
+}
+
+/* World Cup top stripe */
+.flag-stripe {
+  height: 3px;
+  background: linear-gradient(90deg,
+    #169B62 0%, #169B62 25%,
+    #FFFFFF 25%, #FFFFFF 50%,
+    #FF883E 50%, #FF883E 75%,
+    #CE1124 75%, #CE1124 100%);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
