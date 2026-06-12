@@ -57,7 +57,7 @@ export default function Leaderboard() {
           return (
             <div
               key={member.id}
-              className={`card p-4 grid grid-cols-[40px_56px_1fr_auto] items-center gap-4 ${idx === 0 ? 'border-gold' : ''}`}
+              className={`card p-4 grid grid-cols-[36px_48px_1fr] md:grid-cols-[40px_56px_1fr_auto] items-center gap-3 ${idx === 0 ? 'border-gold' : ''}`}
               style={idx === 0 ? { borderColor: 'var(--gold)' } : {}}
             >
               <div className="font-display text-3xl text-text-dim text-center" style={idx === 0 ? { color: 'var(--gold-bright)' } : idx === 1 ? { color: '#B8C5D6' } : idx === 2 ? { color: '#C4854A' } : {}}>
@@ -86,11 +86,11 @@ export default function Leaderboard() {
                       setBalances((b) => ({ ...b, [member.id]: isNaN(v) ? 0 : v }));
                     }}
                     onBlur={() => update(member.id, bal)}
-                    className="input-base w-24 text-right font-display"
+                    className="input-base w-20 text-right font-display text-sm"
                   />
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right col-span-3 md:col-span-1 flex items-baseline justify-between md:block border-t md:border-0 border-white/10 pt-2 md:pt-0">
                 <div className={`font-display text-2xl ${dir === 'up' ? 'text-green-bright' : dir === 'down' ? 'text-red-bright' : 'text-text-muted'}`}
                   style={dir === 'up' ? { color: 'var(--green-bright)' } : dir === 'down' ? { color: 'var(--red-bright)' } : {}}
                 >
