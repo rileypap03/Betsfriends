@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/';
@@ -62,4 +62,9 @@ export default function LoginPage() {
       </div>
     </div>
   );
+}
+
+import { Suspense } from 'react';
+export default function LoginPage() {
+  return <Suspense><LoginForm /></Suspense>;
 }
