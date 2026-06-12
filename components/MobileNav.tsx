@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-const ITEMS=[{href:'/',label:'Dashboard',icon:'Home'},{href:'/fixtures',label:'Fixtures',icon:'Ball'},{href:'/bets',label:'Bet Lab',icon:'Lab'}];
+const ITEMS=[{href:'/',label:'Dashboard',icon:'🏠'},{href:'/fixtures',label:'Fixtures',icon:'⚽'},{href:'/bets',label:'Bet Lab',icon:'⚡'}];
 export default function MobileNav(){
   const pathname=usePathname();
   if(pathname==='/login')return null;
