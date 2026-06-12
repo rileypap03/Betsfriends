@@ -25,6 +25,18 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
     stake: '',
     odds: '',
   });
+  const [fixtures, setFixtures] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/fixtures')
+      .then(r => r.json())
+      .then(j => {
+        const upcoming = (j.fixtures || [])
+          .filter((f: any) => f.fixture.status.short === 'NS')
+          .slice(0, 30);
+        setFixtures(upcoming);
+      });
+  }, []);
   const [submitting, setSubmitting] = useState(false);
 
   async function load() {
@@ -145,8 +157,22 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
           </div>
           <div className="md:col-span-2">
             <label className="eyebrow block mb-1">Match</label>
-            <input value={form.event} onChange={(e) => setForm({ ...form, event: e.target.value })} className="input-base w-full" placeholder="e.g. Brazil vs Argentina" />
+            <select value={form.event} onChange={(e) => setForm({ ...form, event: e.target.value })} className="input-base w-full">
+              <option value="">Select a match...</option>
+              {fixtures.map((f: any) => {
+                const label = f.teams.home.name + ' vs ' + f.teams.away.name;
+                const date = new Date(f.fixture.date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+                return <option key={f.fixture.id} value={label}>{date} · {label}</option>;
+              })}
+              <option value="other">Other (type below)</option>
+            </select>
           </div>
+          {form.event === 'other' && (
+          <div className="md:col-span-2">
+            <label className="eyebrow block mb-1">Custom match</label>
+            <input onChange={(e) => setForm({ ...form, event: e.target.value })} className="input-base w-full" placeholder="e.g. Brazil vs Argentina" />
+          </div>
+          )}
           <div className="md:col-span-2">
             <label className="eyebrow block mb-1">Selection</label>
             <input value={form.selection} onChange={(e) => setForm({ ...form, selection: e.target.value })} className="input-base w-full" placeholder="e.g. Brazil to win" />
