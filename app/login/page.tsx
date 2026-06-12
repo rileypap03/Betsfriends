@@ -1,6 +1,5 @@
 'use client';
-
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 function LoginForm() {
@@ -56,7 +55,7 @@ function LoginForm() {
           </div>
           {error && <p className="text-red-bright text-sm">{error}</p>}
           <button type="submit" disabled={loading || !password} className="btn-primary w-full">
-            {loading ? 'Checking…' : 'Enter'}
+            {loading ? 'Checking...' : 'Enter'}
           </button>
         </form>
       </div>
@@ -64,7 +63,6 @@ function LoginForm() {
   );
 }
 
-import { Suspense } from 'react';
 export default function LoginPage() {
   return <Suspense><LoginForm /></Suspense>;
 }
