@@ -4,8 +4,8 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 
 export default function FixturesPage() {
-  const [fixtures, setFixtures] = useState([]);
-  const [standings, setStandings] = useState([]);
+  const [fixtures, setFixtures] = useState<any[]>([]);
+  const [standings, setStandings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('upcoming');
 
