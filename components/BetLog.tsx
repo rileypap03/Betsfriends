@@ -38,6 +38,8 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
       });
   }, []);
   const [submitting, setSubmitting] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
 
   async function load() {
     const res = await fetch('/api/bets');
@@ -48,6 +50,25 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
 
   useEffect(() => { load(); }, []);
   useEffect(() => { if (prefilledEvent) setForm((f) => ({ ...f, event: prefilledEvent })); }, [prefilledEvent]);
+
+  async function handleScreenshot(e: any) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScanning(true); setScanError('');
+    const reader = new FileReader();
+    reader.onload = async (ev: any) => {
+      try {
+        const res = await fetch('/api/read-bet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: ev.target.result }) });
+        const j = await res.json();
+        if (j.error) { setScanError(j.error); setScanning(false); return; }
+        const b = j.bet;
+        setForm({ player_id: form.player_id, event: b.event || '', selection: b.selection || (b.legs?.join(' + ') || ''), stake: b.stake ? String(b.stake) : '', odds: b.odds ? String(b.odds) : '' });
+      } catch { setScanError('Could not read screenshot.'); }
+      setScanning(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
 
   async function addBet() {
     if (!form.event || !form.selection || !form.stake || !form.odds) {
@@ -187,7 +208,15 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
             <label className="eyebrow block mb-1">Odds</label>
             <input type="number" step="0.01" value={form.odds} onChange={(e) => setForm({ ...form, odds: e.target.value })} className="input-base w-full max-w-[120px]" placeholder="2.50" />
           </div>
-          <button onClick={addBet} disabled={submitting} className="btn-primary">{submitting ? 'Adding…' : 'Add Bet'}</button>
+          <div className="flex gap-2 items-center">
+            <button onClick={addBet} disabled={submitting || scanning} className="btn-primary">{submitting ? 'Adding...' : 'Add Bet'}</button>
+            <label className="cursor-pointer px-3 py-2 rounded-md text-xs font-bold border border-white/20 hover:border-gold transition-colors" title="Scan Sky Bet screenshot">
+              {scanning ? 'Reading...' : '📸 Scan'}
+              <input type="file" accept="image/*" className="hidden" onChange={handleScreenshot} disabled={scanning} />
+            </label>
+          </div>
+          {scanError && <p className="text-xs mt-1" style={{color:'var(--red-bright)'}}>{scanError}</p>}
+          {scanning && <p className="text-xs mt-1 text-text-muted">Reading your bet screenshot...</p>}
         </div>
       </div>
 
