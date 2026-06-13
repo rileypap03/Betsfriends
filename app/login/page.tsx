@@ -1,9 +1,8 @@
 'use client';
-
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/';
@@ -40,26 +39,25 @@ export default function LoginPage() {
             <div className="text-gold italic -mt-2">6</div>
           </div>
           <div className="eyebrow text-gold mt-4">World Cup 26</div>
-          <div className="display-title text-3xl mt-1 italic">BetsFriends</div>
+          <div className="display-title text-3xl mt-1">BetsFriends</div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="eyebrow block mb-2">Team password</label>
-            <input
-              type="password"
-              autoFocus
-              value={password}
+            <input type="password" autoFocus value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input-base w-full"
-              placeholder="Enter shared password"
-            />
+              className="input-base w-full" placeholder="Enter shared password" />
           </div>
-          {error && <p className="text-red-bright text-sm">{error}</p>}
+          {error && <p style={{color:'var(--red-bright)'}} className="text-sm">{error}</p>}
           <button type="submit" disabled={loading || !password} className="btn-primary w-full">
-            {loading ? 'Checking…' : 'Enter'}
+            {loading ? 'Checking...' : 'Enter'}
           </button>
         </form>
       </div>
     </div>
   );
+}
+
+export default function LoginPage() {
+  return <Suspense><LoginForm /></Suspense>;
 }
