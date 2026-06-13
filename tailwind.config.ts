@@ -8,22 +8,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: { deep: '#020F2A', card: '#0A1A3D', hover: '#11244F' },
-        text: { primary: '#FFFFFF', muted: '#8A9BBF', dim: '#5A6B8C' },
-        gold: { DEFAULT: '#C9A557', bright: '#E5C56E' },
+        bg: { deep: '#0A0A0A', card: '#141414', hover: '#1E1E1E' },
+        text: { primary: '#FFFFFF', muted: '#9A9A9A', dim: '#5A5A5A' },
+        gold: { DEFAULT: '#C9A84C', bright: '#E8C86A' },
         accent: {
-          green: '#00754A',
-          'green-bright': '#00C775',
-          red: '#E4002B',
-          'red-bright': '#FF4D6D',
-          irl: '#169B62',
-          irl2: '#FF883E',
-          eng: '#CE1124',
-          eng2: '#7A0F1E',
+          green: '#3CAC3B',
+          'green-bright': '#3CAC3B',
+          red: '#E61D25',
+          'red-bright': '#E61D25',
+          usa: '#2A398D',
+          can: '#E61D25',
+          mex: '#3CAC3B',
         },
       },
       fontFamily: {
-        display: ['Anton', 'Impact', 'sans-serif'],
+        display: ['Bebas Neue', 'Impact', 'sans-serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },

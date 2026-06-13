@@ -10,7 +10,7 @@ export default function InstallPrompt() {
   useEffect(() => {
     // Already dismissed?
     if (typeof window === 'undefined') return;
-    if (localStorage.getItem('duxtomer-install-dismissed') === '1') return;
+    if (localStorage.getItem('betsfriends-install-dismissed') === '1') return;
 
     // Already in standalone mode (installed)?
     const isStandalone =
@@ -43,7 +43,7 @@ export default function InstallPrompt() {
   }, []);
 
   function dismiss() {
-    localStorage.setItem('duxtomer-install-dismissed', '1');
+    localStorage.setItem('betsfriends-install-dismissed', '1');
     setShow(false);
   }
 
@@ -52,7 +52,7 @@ export default function InstallPrompt() {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.promptResult || await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
-      localStorage.setItem('duxtomer-install-dismissed', '1');
+      localStorage.setItem('betsfriends-install-dismissed', '1');
     }
     setDeferredPrompt(null);
     setShow(false);
@@ -69,7 +69,7 @@ export default function InstallPrompt() {
       >
         ×
       </button>
-      <div className="font-display text-lg italic mb-1">Add DUXTOMER to home</div>
+      <div className="font-display text-lg italic mb-1">Add BetsFriends to home</div>
       <div className="text-xs text-text-muted mb-3">
         Install the app for quick access and a full-screen experience.
       </div>

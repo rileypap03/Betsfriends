@@ -10,10 +10,10 @@ export interface TeamMember {
 }
 
 export const TEAM: TeamMember[] = [
-  { id: 'fitz', name: 'Fitz', country: 'IRL', color: '#169B62', accent: '#1FB876', avatar: '/avatars/fitz.jpg' },
-  { id: 'miller', name: 'Miller', country: 'IRL', color: '#C25A1F', accent: '#FF883E', avatar: '/avatars/miller.jpg' },
-  { id: 'roberto', name: 'Roberto', country: 'ENG', color: '#CE1124', accent: '#E63946', avatar: '/avatars/roberto.jpg' },
-  { id: 'riley', name: 'Riley', country: 'ENG', color: '#7A0F1E', accent: '#B91C2C', avatar: '/avatars/riley.jpg' },
+  { id: 'fitz', name: 'Fitz', country: 'IRL', color: '#1A3A1A', accent: '#3CAC3B', avatar: '/avatars/fitz.jpg' },
+  { id: 'miller', name: 'Miller', country: 'IRL', color: '#1A2A1A', accent: '#3CAC3B', avatar: '/avatars/miller.jpg' },
+  { id: 'roberto', name: 'Roberto', country: 'ENG', color: '#3A0A0A', accent: '#E61D25', avatar: '/avatars/roberto.jpg' },
+  { id: 'riley', name: 'Riley', country: 'ENG', color: '#2A0808', accent: '#E61D25', avatar: '/avatars/riley.jpg' },
 ];
 
 export const STARTING_STAKE = 100;

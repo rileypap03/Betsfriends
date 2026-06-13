@@ -3,6 +3,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
+const NAV = [
+  { href: '/', label: 'Dashboard' },
+  { href: '/fixtures', label: 'Fixtures' },
+  { href: '/bets', label: 'Bet Lab' },
+];
+
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
@@ -16,23 +22,31 @@ export default function Header() {
     <header className="card mb-6 relative overflow-hidden">
       <div className="flag-stripe absolute top-0 left-0 right-0" />
       <div className="flex items-center justify-between p-5 pt-7">
-        <Link href="/" className="flex items-center gap-4">
+        <Link href="/" className="flex items-center gap-4 group">
           <div className="font-display text-4xl leading-none">
             <div className="text-gold-bright italic">2</div>
             <div className="text-gold italic -mt-1.5">6</div>
           </div>
           <div>
-            <div className="eyebrow text-gold">World Cup 26 · We Are 26</div>
-            <div className="display-title text-xl italic">DUXTOMER</div>
+            <div className="eyebrow text-gold">World Cup 26 · BetsFriends</div>
+            <div className="display-title text-xl italic">BetsFriends</div>
           </div>
         </Link>
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1">
           <div className="hidden md:flex items-center gap-1">
-            <Link href="/" className={`px-3 py-1.5 rounded text-s  font-medium transition-colors ${pathname === '/' ? 'bg-white/10 text-white' : 'text-text-muted hover:text-white'}`}>Dashboard</Link>
-            <Link href="/fixtures" className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${pathname.startsWith('/fixtures') ? 'bg-white/10 text-white' : 'text-text-muted hover:text-white'}`}>Fixtures</Link>
-            <Link href="/bets" className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${pathname.startsWith('/bets') ? 'bg-white/10 text-white' : 'text-text-muted hover:text-white'}`}>Bet Lab</Link>
+            {NAV.map((n) => (
+              <Link
+                key={n.href}
+                href={n.href}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  pathname === n.href ? 'bg-white/10 text-white' : 'text-text-muted hover:text-white'
+                }`}
+              >
+                {n.label}
+              </Link>
+            ))}
           </div>
-          <button onClick={logout} className="btn-secondary">Logout</button>
+          <button onClick={logout} className="ml-3 btn-secondary">Logout</button>
         </nav>
       </div>
     </header>

@@ -49,18 +49,18 @@ export default function SplashGate({ children }: { children: React.ReactNode }) 
               — WORLD CUP 26 —
             </div>
             <div className="splash-name font-display text-white text-5xl md:text-6xl italic mb-6 opacity-0 animate-[fadeUp_0.6s_0.25s_forwards]">
-              DUXTOMER
+              BetsFriends
             </div>
             <div className="relative w-full opacity-0 animate-[fadeUp_0.7s_0.45s_forwards]">
               <img
-                src="/duxtomer-team.png"
-                alt="DUXTOMER team"
+                src="/betsfriends-team.png"
+                alt="BetsFriends team"
                 className="w-full h-auto rounded-xl"
                 style={{ filter: 'drop-shadow(0 8px 32px rgba(0,0,0,0.5))' }}
               />
             </div>
             <div className="splash-tag mt-6 text-text-muted text-xs font-bold tracking-[3px] opacity-0 animate-[fadeUp_0.6s_0.7s_forwards]">
-              TWO IRISH · TWO ENGLISH
+              TWO IRISH  ·  TWO ENGLISH
             </div>
             <div className="text-gold text-xs font-bold tracking-[3px] mt-2 opacity-0 animate-[fadeUp_0.6s_0.85s_forwards]">
               ONE TROPHY

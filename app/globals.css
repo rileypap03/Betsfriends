@@ -2,21 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;900&display=swap');
 
 :root {
-  --bg-deep: #020F2A;
-  --bg-card: #0A1A3D;
-  --bg-hover: #11244F;
+  /* Official FIFA WC2026 palette */
+  --bg-deep: #0A0A0A;
+  --bg-card: #141414;
+  --bg-hover: #1E1E1E;
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.18);
   --text: #FFFFFF;
-  --text-muted: #8A9BBF;
-  --text-dim: #5A6B8C;
-  --gold: #C9A557;
-  --gold-bright: #E5C56E;
-  --green-bright: #00C775;
-  --red-bright: #FF4D6D;
+  --text-muted: #9A9A9A;
+  --text-dim: #5A5A5A;
+  --gold: #C9A84C;
+  --gold-bright: #E8C86A;
+  --usa: #2A398D;
+  --can: #E61D25;
+  --mex: #3CAC3B;
+  --green-bright: #3CAC3B;
+  --red-bright: #E61D25;
 }
 
 html, body {
@@ -48,7 +52,7 @@ body::before {
   }
 
   .display-title {
-    font-family: 'Anton', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     letter-spacing: 1.5px;
     text-transform: uppercase;
   }
@@ -72,12 +76,11 @@ body::before {
 
 /* World Cup top stripe */
 .flag-stripe {
-  height: 3px;
+  height: 4px;
   background: linear-gradient(90deg,
-    #169B62 0%, #169B62 25%,
-    #FFFFFF 25%, #FFFFFF 50%,
-    #FF883E 50%, #FF883E 75%,
-    #CE1124 75%, #CE1124 100%);
+    #2A398D 0%, #2A398D 33.33%,
+    #E61D25 33.33%, #E61D25 66.66%,
+    #3CAC3B 66.66%, #3CAC3B 100%);
 }
 
 /* Scrollbar */

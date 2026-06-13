@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'DUXTOMER · World Cup 26',
-    short_name: 'DUXTOMER',
+    name: 'BetsFriends · World Cup 26',
+    short_name: 'BetsFriends',
     description: "The team's World Cup 26 sweepstakes HQ — leaderboard, bet log, and live match intel.",
     start_url: '/',
     display: 'standalone',
