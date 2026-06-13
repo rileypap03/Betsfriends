@@ -55,7 +55,7 @@ export default function FixturesPage() {
   );
 }
 
-function FixtureCard({ fixture: f }) {
+function FixtureCard({ fixture: f }: { fixture: any }) {
   const s = f.fixture.status.short;
   const isLive = ['1H','2H','HT','ET','P'].includes(s);
   const isFinished = ['FT','AET','PEN'].includes(s);
@@ -93,7 +93,7 @@ function FixtureCard({ fixture: f }) {
   );
 }
 
-function GroupTables({ standings }) {
+function GroupTables({ standings }: { standings: any[] }) {
   if (!standings || standings.length === 0) return <div className="text-center text-text-dim text-sm py-10">Group tables not available yet.</div>;
   const groups = standings.filter(s => s.type === 'TOTAL');
   if (groups.length === 0) return <div className="text-center text-text-dim text-sm py-10">Group stage not started yet.</div>;
@@ -116,7 +116,7 @@ function GroupTables({ standings }) {
               <th className="text-center px-1 py-1.5 font-bold" style={{color:'#C9A84C'}}>Pts</th>
             </tr></thead>
             <tbody>
-              {group.table.map((row) => (
+              {group.table.map((row: any) => (
                 <tr key={row.team.id} className="border-b border-white/5 last:border-0">
                   <td className="px-3 py-2" style={{color:'#9A9A9A'}}>{row.position}</td>
                   <td className="px-2 py-2">
