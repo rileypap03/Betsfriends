@@ -57,25 +57,50 @@ export default function Leaderboard() {
           return (
             <div
               key={member.id}
-              className={`card p-4 grid grid-cols-[36px_48px_1fr] md:grid-cols-[40px_56px_1fr_auto] items-center gap-3 ${idx === 0 ? 'border-gold' : ''}`}
+              className="card p-4"
               style={idx === 0 ? { borderColor: 'var(--gold)' } : {}}
             >
-              <div className="font-display text-3xl text-text-dim text-center" style={idx === 0 ? { color: 'var(--gold-bright)' } : idx === 1 ? { color: '#B8C5D6' } : idx === 2 ? { color: '#C4854A' } : {}}>
-                {idx + 1}
+              {/* Top row: rank + avatar + name + P&L */}
+              <div className="flex items-center gap-3">
+                <div className="font-display text-3xl w-8 text-center shrink-0 text-text-dim"
+                  style={idx === 0 ? { color: 'var(--gold-bright)' } : idx === 1 ? { color: '#B8C5D6' } : idx === 2 ? { color: '#C4854A' } : {}}>
+                  {idx + 1}
+                </div>
+                <div
+                  className="w-12 h-12 rounded-xl shrink-0 bg-cover bg-center border-2"
+                  style={{ backgroundImage: `url(${member.avatar})`, backgroundColor: member.color, borderColor: member.accent }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold">{member.name}</div>
+                  <div className="text-xs mt-0.5" style={{ color: member.accent }}>★ {member.country}</div>
+                </div>
+                {/* P&L — always visible, right side */}
+                <div className="text-right shrink-0">
+                  <div
+                    className="font-display text-2xl"
+                    style={{ color: dir === 'up' ? 'var(--green-bright)' : dir === 'down' ? 'var(--red-bright)' : 'var(--text-muted)' }}
+                  >
+                    {pnl >= 0 ? '+' : '−'}£{Math.abs(pnl).toFixed(2)}
+                  </div>
+                  <div
+                    className="text-xs font-semibold px-2 py-0.5 rounded inline-block mt-1"
+                    style={{
+                      background: dir === 'up' ? 'rgba(0,199,117,0.12)' : dir === 'down' ? 'rgba(255,77,109,0.12)' : 'rgba(138,155,191,0.12)',
+                      color: dir === 'up' ? '#00C775' : dir === 'down' ? '#FF4D6D' : '#8A9BBF',
+                    }}
+                  >
+                    {dir === 'up' ? '▲' : dir === 'down' ? '▼' : '—'} {pct >= 0 ? '+' : '−'}{Math.abs(pct).toFixed(1)}%
+                  </div>
+                </div>
               </div>
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center font-display text-2xl bg-cover bg-center border-2"
-                style={{ backgroundImage: `url(${member.avatar})`, backgroundColor: member.color, borderColor: member.accent }}
-              />
 
-              <div>
-                <div className="font-semibold">{member.name}</div>
-                <div className="text-xs text-text-muted mt-1 flex items-center gap-2">
-                  <span style={{ color: member.accent }} className="font-bold tracking-wide">★ {member.country}</span>
-                  <span>·</span>
-                  <span>Stake: £{STARTING_STAKE}</span>
-                  <span>·</span>
-                  <span>Current:</span>
+              {/* Bottom row: stake info + balance input */}
+              <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
+                <div className="text-xs text-text-muted">
+                  Stake: <span className="text-white">£{STARTING_STAKE}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-text-muted">Balance:</span>
                   <input
                     type="number"
                     step="0.01"
@@ -86,23 +111,9 @@ export default function Leaderboard() {
                       setBalances((b) => ({ ...b, [member.id]: isNaN(v) ? 0 : v }));
                     }}
                     onBlur={() => update(member.id, bal)}
-                    className="input-base w-20 text-right font-display text-sm"
+                    className="input-base text-right font-display text-sm"
+                    style={{ width: '90px' }}
                   />
-                </div>
-              </div>
-              <div className="text-right col-span-3 md:col-span-1 flex items-baseline justify-between md:block border-t md:border-0 border-white/10 pt-2 md:pt-0">
-                <div className={`font-display text-2xl ${dir === 'up' ? 'text-green-bright' : dir === 'down' ? 'text-red-bright' : 'text-text-muted'}`}
-                  style={dir === 'up' ? { color: 'var(--green-bright)' } : dir === 'down' ? { color: 'var(--red-bright)' } : {}}
-                >
-                  {pnl >= 0 ? '+' : '−'}£{Math.abs(pnl).toFixed(2)}
-                </div>
-                <div className={`text-xs font-semibold mt-1 px-2 py-0.5 rounded inline-block`}
-                  style={{
-                    background: dir === 'up' ? 'rgba(0,199,117,0.12)' : dir === 'down' ? 'rgba(255,77,109,0.12)' : 'rgba(138,155,191,0.12)',
-                    color: dir === 'up' ? '#00C775' : dir === 'down' ? '#FF4D6D' : '#8A9BBF',
-                  }}
-                >
-                  {dir === 'up' ? '▲' : dir === 'down' ? '▼' : '—'} {pct >= 0 ? '+' : '−'}{Math.abs(pct).toFixed(1)}%
                 </div>
               </div>
             </div>
