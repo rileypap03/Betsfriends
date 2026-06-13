@@ -29,7 +29,7 @@ export default function FixturesPage() {
     if (filter === 'finished') return isFinished;
     if (filter === 'upcoming') return !isLive && !isFinished;
     return true;
-  }).sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date));
+  }).sort((a: any, b: any) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime());
 
   return (
     <main className="max-w-3xl mx-auto p-4 pb-24 relative z-10">
