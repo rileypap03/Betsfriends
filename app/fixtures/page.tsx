@@ -47,7 +47,7 @@ export default function FixturesPage() {
       <div className="flex gap-1 mb-4 card p-1 overflow-x-auto">
         {['upcoming','live','finished','groups','bracket','all'].map((f) => (
           <button key={f} onClick={() => { setFilter(f); if (f !== 'groups') setJumpGroup(null); }}
-            className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
+            className="flex-1 py-2 rounded text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
             style={filter === f ? { background: 'rgba(255,255,255,0.1)', color: 'white' } : { color: '#9A9A9A' }}>
             {f}
           </button>
@@ -75,56 +75,61 @@ function FixtureCard({ fixture: f, onGroupClick }: { fixture: any; onGroupClick:
   const hasScore = f.goals.home !== null;
   const round = f.league?.round || '';
   const isGroupRound = /^Group [A-Z]$/i.test(round);
+  const elapsed = f.fixture.status.elapsed;
   return (
     <div className="block card p-3 hover:bg-bg-hover transition-colors">
       <div className="flex items-center justify-between mb-2">
         {isGroupRound ? (
           <button
             onClick={(e) => { e.preventDefault(); onGroupClick(round); }}
-            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full transition-colors"
+            className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full transition-colors"
             style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}
           >
             {round}
           </button>
         ) : round ? (
           <span
-            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+            className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
             style={{ background: 'rgba(255,255,255,0.06)', color: '#9A9A9A' }}
           >
             {round}
           </span>
         ) : <span />}
-        <span className="text-[10px] text-text-muted">
+        <span className="text-xs text-text-muted">
           {new Date(f.fixture.date).toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}
         </span>
       </div>
       <div className="flex items-center gap-2">
         <Link
           href={`/team/${f.teams.home.id}?name=${encodeURIComponent(f.teams.home.name)}&crest=${encodeURIComponent(f.teams.home.logo || '')}`}
-          className="flex items-center gap-1.5 flex-1 min-w-0 justify-end hover:opacity-75 transition-opacity"
+          className="flex items-center gap-2 flex-1 min-w-0 justify-end hover:opacity-75 transition-opacity"
         >
-          <span className="text-xs font-semibold truncate text-right">{f.teams.home.name}</span>
-          {f.teams.home.logo && <img src={f.teams.home.logo} alt="" className="w-5 h-5 shrink-0" />}
+          <span className="text-sm font-semibold truncate text-right">{f.teams.home.name}</span>
+          {f.teams.home.logo && <img src={f.teams.home.logo} alt="" className="w-6 h-6 shrink-0" />}
         </Link>
-        <Link href={"/match/" + f.fixture.id} className="shrink-0 flex items-center gap-1 px-1">
+        <Link href={"/match/" + f.fixture.id} className="shrink-0 flex flex-col items-center gap-0.5 px-1" style={{ minWidth: 48 }}>
           {hasScore ? (
-            <span className="font-display text-sm">{f.goals.home} - {f.goals.away}</span>
+            <span className="font-display text-base">{f.goals.home} - {f.goals.away}</span>
           ) : (
-            <span className="text-[10px] font-semibold text-text-muted">
+            <span className="text-xs font-semibold text-text-muted">
               {new Date(f.fixture.date).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })}
             </span>
+          )}
+          {isLive && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded leading-none" style={{background:'rgba(230,29,37,0.15)',color:'#E61D25'}}>
+              {elapsed ? `${elapsed}'` : 'LIVE'}
+            </span>
+          )}
+          {isFinished && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded leading-none" style={{background:'rgba(255,255,255,0.06)',color:'#9A9A9A'}}>FT</span>
           )}
         </Link>
         <Link
           href={`/team/${f.teams.away.id}?name=${encodeURIComponent(f.teams.away.name)}&crest=${encodeURIComponent(f.teams.away.logo || '')}`}
-          className="flex items-center gap-1.5 flex-1 min-w-0 hover:opacity-75 transition-opacity"
+          className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-75 transition-opacity"
         >
-          {f.teams.away.logo && <img src={f.teams.away.logo} alt="" className="w-5 h-5 shrink-0" />}
-          <span className="text-xs font-semibold truncate">{f.teams.away.name}</span>
-        </Link>
-        <Link href={"/match/" + f.fixture.id} className="w-8 text-right shrink-0">
-          {isLive && <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{background:'rgba(230,29,37,0.15)',color:'#E61D25'}}>LIVE</span>}
-          {isFinished && <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{background:'rgba(255,255,255,0.06)',color:'#9A9A9A'}}>FT</span>}
+          {f.teams.away.logo && <img src={f.teams.away.logo} alt="" className="w-6 h-6 shrink-0" />}
+          <span className="text-sm font-semibold truncate">{f.teams.away.name}</span>
         </Link>
       </div>
     </div>
@@ -196,8 +201,8 @@ function GroupTables({ standings, jumpTo }: { standings: any[]; jumpTo?: string 
           <div className="px-3 py-2 text-xs font-bold tracking-widest uppercase" style={{background:'rgba(255,255,255,0.05)',color:'#C9A84C'}}>
             {group.groupLabel}
           </div>
-          <table className="w-full text-xs">
-            <thead><tr className="border-b border-white/5" style={{color:'#5A5A5A'}}>
+          <table className="w-full text-sm">
+            <thead><tr className="border-b border-white/5 text-xs" style={{color:'#5A5A5A'}}>
               <th className="text-left px-3 py-1.5">#</th>
               <th className="text-left px-2 py-1.5">Team</th>
               <th className="text-center px-1 py-1.5">P</th>
@@ -216,8 +221,8 @@ function GroupTables({ standings, jumpTo }: { standings: any[]; jumpTo?: string 
                       href={`/team/${row.team?.id}?name=${encodeURIComponent(row.team?.name || '')}&crest=${encodeURIComponent(row.team?.crest || row.team?.logo || '')}`}
                       className="flex items-center gap-1.5 hover:opacity-75 transition-opacity"
                     >
-                      {(row.team?.crest || row.team?.logo) && <img src={row.team.crest || row.team.logo} alt="" className="w-4 h-4 shrink-0" />}
-                      <span className="truncate font-medium" style={{maxWidth:'80px'}}>{row.team?.name}</span>
+                      {(row.team?.crest || row.team?.logo) && <img src={row.team.crest || row.team.logo} alt="" className="w-5 h-5 shrink-0" />}
+                      <span className="truncate font-medium" style={{maxWidth:'96px'}}>{row.team?.name}</span>
                     </Link>
                   </td>
                   <td className="text-center px-1 py-2" style={{color:'#9A9A9A'}}>{row.playedGames ?? 0}</td>
@@ -322,7 +327,7 @@ function BracketMatch({ fixture: f }: { fixture: any }) {
     const content = (
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
         {logo && <img src={logo} alt="" className="w-4 h-4 shrink-0" />}
-        <span className={`text-xs truncate ${won ? 'font-bold' : ''}`} style={{ color: won ? 'white' : name === 'TBD' ? '#5A5A5A' : '#9A9A9A' }}>
+        <span className={`text-sm truncate ${won ? 'font-bold' : ''}`} style={{ color: won ? 'white' : name === 'TBD' ? '#5A5A5A' : '#9A9A9A' }}>
           {name}
         </span>
       </div>
@@ -334,14 +339,14 @@ function BracketMatch({ fixture: f }: { fixture: any }) {
             {content}
           </Link>
         ) : content}
-        {hasScore && <span className="font-display text-xs shrink-0" style={{ color: won ? 'var(--gold-bright)' : '#9A9A9A' }}>{score}</span>}
+        {hasScore && <span className="font-display text-sm shrink-0" style={{ color: won ? 'var(--gold-bright)' : '#9A9A9A' }}>{score}</span>}
       </div>
     );
   };
 
   return (
     <Link href={`/match/${f.fixture.id}`} className="card overflow-hidden block hover:bg-bg-hover transition-colors">
-      <div className="text-[9px] text-text-dim px-2 pt-1.5 flex items-center justify-between">
+      <div className="text-xs text-text-dim px-2 pt-1.5 flex items-center justify-between">
         <span>{new Date(f.fixture.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
         {isLive && <span className="font-bold px-1 py-0.5 rounded" style={{background:'rgba(230,29,37,0.15)',color:'#E61D25'}}>LIVE</span>}
         {isFinished && <span className="font-bold px-1 py-0.5 rounded" style={{background:'rgba(255,255,255,0.06)',color:'#9A9A9A'}}>FT</span>}
