@@ -67,19 +67,13 @@ export default function SplashGate({ children }: { children: React.ReactNode }) 
             <div className="splash-name font-display text-white text-5xl md:text-6xl italic mb-6 opacity-0 animate-[fadeUp_0.6s_0.25s_forwards]">
               BetsFriends
             </div>
-            <div className="relative w-full flex justify-center opacity-0 animate-[fadeUp_0.7s_0.45s_forwards]">
-              <div
-                className="font-display text-7xl"
-                style={{
-                  background: 'linear-gradient(135deg, #1F3A8A 0%, #DC2626 50%, #047857 100%)',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  color: 'transparent',
-                  filter: 'drop-shadow(0 8px 32px rgba(0,0,0,0.5))',
-                }}
-              >
-                ⚽
-              </div>
+            <div className="relative w-full opacity-0 animate-[fadeUp_0.7s_0.45s_forwards]">
+              <img
+                src="/splash-players.png"
+                alt="BetsFriends team"
+                className="w-full h-auto rounded-xl"
+                style={{ filter: 'drop-shadow(0 8px 32px rgba(0,0,0,0.5))' }}
+              />
             </div>
             <div className="splash-tag mt-6 text-text-muted text-xs font-bold tracking-[3px] opacity-0 animate-[fadeUp_0.6s_0.7s_forwards]">
               TWO IRISH  ·  TWO ENGLISH
