@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '@/components/Header';
+import { groupForTeam } from '@/lib/wc2026-groups';
 
 export default function FixturesPage() {
   const [fixtures, setFixtures] = useState<any[]>([]);
@@ -124,7 +125,7 @@ function splitIntoGroups(standings: any[]): { groupLabel: string; table: any[] }
   if (!standings || standings.length === 0) return [];
 
   // football-data.org returns one entry per group already, each with
-  // type: 'TOTAL' and group: 'GROUP_A' etc. Use those if present.
+  // type: 'TOTAL' and group: 'GROUP_A' etc, when that data is available.
   const totals = standings.filter((s) => s.type === 'TOTAL');
   const withGroupField = totals.filter((s) => s.group);
 
@@ -132,47 +133,40 @@ function splitIntoGroups(standings: any[]): { groupLabel: string; table: any[] }
     return withGroupField
       .map((g) => ({
         groupLabel: g.group.replace('GROUP_', 'Group '),
-        table: g.table || [],
+        table: sortGroupRows(g.table || []),
       }))
       .sort((a, b) => a.groupLabel.localeCompare(b.groupLabel));
   }
 
-  // Fallback: single combined entry (or entries without a group field).
-  // Split the rows themselves by their own `group` property if present.
+  // Fallback: football-data.org's free tier returns one combined 48-team
+  // table with group: null on every row. Bucket each row into its real
+  // World Cup group using the official draw (lib/wc2026-groups.ts).
   const source = totals.length > 0 ? totals : standings;
   const allRows: any[] = source.flatMap((s) => s.table || []);
+  if (allRows.length === 0) return [];
 
   const byGroup = new Map<string, any[]>();
-  let anyRowHasGroup = false;
   for (const row of allRows) {
-    const g = row.group || row.team?.group;
-    if (g) {
-      anyRowHasGroup = true;
-      const label = String(g).replace('GROUP_', 'Group ');
-      if (!byGroup.has(label)) byGroup.set(label, []);
-      byGroup.get(label)!.push(row);
-    }
+    const letter = groupForTeam(row.team || {});
+    if (!letter) continue; // unknown team, skip rather than misplace it
+    if (!byGroup.has(letter)) byGroup.set(letter, []);
+    byGroup.get(letter)!.push(row);
   }
 
-  if (anyRowHasGroup) {
-    return Array.from(byGroup.entries())
-      .map(([groupLabel, table]) => ({ groupLabel, table }))
-      .sort((a, b) => a.groupLabel.localeCompare(b.groupLabel));
-  }
+  return Array.from(byGroup.entries())
+    .map(([letter, table]) => ({ groupLabel: `Group ${letter}`, table: sortGroupRows(table) }))
+    .sort((a, b) => a.groupLabel.localeCompare(b.groupLabel));
+}
 
-  // No group info anywhere — split alphabetically by team name into
-  // chunks of 4 as a last resort (World Cup 2026 groups have 4 teams each).
-  if (allRows.length > 4) {
-    const sorted = [...allRows].sort((a, b) => (a.team?.name || '').localeCompare(b.team?.name || ''));
-    const chunks: { groupLabel: string; table: any[] }[] = [];
-    for (let i = 0; i < sorted.length; i += 4) {
-      const letter = String.fromCharCode(65 + chunks.length); // A, B, C...
-      chunks.push({ groupLabel: `Group ${letter}`, table: sorted.slice(i, i + 4) });
-    }
-    return chunks;
-  }
-
-  return allRows.length > 0 ? [{ groupLabel: 'Group A', table: allRows }] : [];
+// Standard World Cup tiebreaker order: points, then goal difference, then goals scored.
+function sortGroupRows(table: any[]): any[] {
+  return [...table]
+    .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+      return (b.goalsFor ?? 0) - (a.goalsFor ?? 0);
+    })
+    .map((row, i) => ({ ...row, position: i + 1 }));
 }
 
 function GroupTables({ standings, jumpTo }: { standings: any[]; jumpTo?: string | null }) {
