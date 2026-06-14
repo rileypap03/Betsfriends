@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 const NAV = [
   { href: '/', label: 'Dashboard' },
   { href: '/fixtures', label: 'Fixtures' },
-  { href: '/bets', label: 'Bet Lab' },
+  { href: '/bets', label: 'Team Bets' },
 ];
 
 export default function Header({ back }: { back?: boolean } = {}) {

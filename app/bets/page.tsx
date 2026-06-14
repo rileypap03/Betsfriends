@@ -9,7 +9,7 @@ export default function BetsPage() {
       <section>
         <h2 className="display-title text-xl mb-3 flex items-center gap-2">
           <FlaskConical size={20} strokeWidth={2} style={{ color: 'var(--gold-bright)' }} fill="rgba(232,200,106,0.25)" />
-          Bet Lab
+          Team Bets
         </h2>
         <p className="text-sm text-text-muted mb-4">
           Every bet logged by the team, in one place. The conflict detector flags when two of you are on opposite sides of the same market.

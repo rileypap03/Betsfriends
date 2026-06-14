@@ -6,7 +6,7 @@ import { LayoutDashboard, Volleyball, FlaskConical } from 'lucide-react';
 const ITEMS = [
   { href: '/', label: 'Dashboard', Icon: LayoutDashboard },
   { href: '/fixtures', label: 'Fixtures', Icon: Volleyball },
-  { href: '/bets', label: 'Bet Lab', Icon: FlaskConical },
+  { href: '/bets', label: 'Team Bets', Icon: FlaskConical },
 ];
 
 export default function MobileNav(){

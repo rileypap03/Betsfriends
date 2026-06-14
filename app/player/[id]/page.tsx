@@ -21,6 +21,27 @@ export default function PlayerPage({ params }: { params: { id: string } }) {
       });
   }, [playerId]);
 
+  async function load() {
+    const res = await fetch('/api/bets');
+    const j = await res.json();
+    setBets((j.bets || []).filter((b: Bet) => b.player_id === playerId));
+  }
+
+  async function setStatus(id: string, status: string) {
+    await fetch('/api/bets', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    });
+    await load();
+  }
+
+  async function deleteBet(id: string) {
+    if (!confirm('Delete bet?')) return;
+    await fetch(`/api/bets?id=${id}`, { method: 'DELETE' });
+    await load();
+  }
+
   if (!player) {
     return (
       <main className="max-w-3xl mx-auto p-4 pb-24 relative z-10">
@@ -88,7 +109,7 @@ export default function PlayerPage({ params }: { params: { id: string } }) {
             </div>
             <div className="space-y-2">
               {items.map((bet) => (
-                <BetCard key={bet.id} bet={bet} showPlayer={false} />
+                <BetCard key={bet.id} bet={bet} showPlayer={false} onSetStatus={setStatus} onDelete={deleteBet} />
               ))}
             </div>
           </div>
