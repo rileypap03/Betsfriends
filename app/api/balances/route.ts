@@ -1,39 +1,42 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { TEAM, STARTING_STAKE, PlayerId } from '@/lib/types';
 
 export const revalidate = 0;
 
+// Balances are fully derived from bets — no manual override.
+// balance = STARTING_STAKE
+//           - stake of every bet that is 'open' or 'lost'
+//           + (stake * odds) of every bet that is 'won'
+// 'void' bets have no effect (stake never really at risk).
 export async function GET() {
   try {
-    const [balRes, histRes] = await Promise.all([
-      supabase().from('balances').select('*'),
-      supabase().from('balance_history').select('*').order('recorded_at', { ascending: true }),
-    ]);
-    if (balRes.error) throw balRes.error;
-    if (histRes.error) throw histRes.error;
-    return NextResponse.json({ balances: balRes.data, history: histRes.data });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
-}
+    const { data: bets, error } = await supabase().from('bets').select('player_id, stake, odds, status');
+    if (error) throw error;
 
-export async function POST(req: Request) {
-  try {
-    const { player_id, balance } = await req.json();
-    if (!['fitz','miller','roberto','riley'].includes(player_id)) {
-      return NextResponse.json({ error: 'Invalid player_id' }, { status: 400 });
-    }
-    const b = parseFloat(balance);
-    if (isNaN(b) || b < 0) return NextResponse.json({ error: 'Invalid balance' }, { status: 400 });
+    const balances: Record<PlayerId, number> = {} as any;
+    for (const t of TEAM) balances[t.id] = STARTING_STAKE;
 
-    const now = new Date().toISOString();
-    const [upd, hist] = await Promise.all([
-      supabase().from('balances').upsert({ player_id, balance: b, updated_at: now }),
-      supabase().from('balance_history').insert({ player_id, balance: b, recorded_at: now }),
-    ]);
-    if (upd.error) throw upd.error;
-    if (hist.error) throw hist.error;
-    return NextResponse.json({ ok: true });
+    (bets || []).forEach((b: any) => {
+      const pid = b.player_id as PlayerId;
+      if (!(pid in balances)) return;
+      const stake = Number(b.stake);
+      const odds = Number(b.odds);
+      if (b.status === 'open' || b.status === 'lost') {
+        balances[pid] -= stake;
+      } else if (b.status === 'won') {
+        balances[pid] += stake * odds - stake;
+      }
+      // 'void' → no change
+    });
+
+    const result = TEAM.map((t) => ({
+      player_id: t.id,
+      balance: Math.round(balances[t.id] * 100) / 100,
+      updated_at: new Date().toISOString(),
+    }));
+
+    return NextResponse.json({ balances: result });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

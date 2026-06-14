@@ -20,15 +20,6 @@ export default function Leaderboard() {
 
   useEffect(() => { load(); }, []);
 
-  async function update(player_id: PlayerId, newBalance: number) {
-    setBalances((b) => ({ ...b, [player_id]: newBalance }));
-    await fetch('/api/balances', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ player_id, balance: newBalance }),
-    });
-  }
-
   if (loading) return <div className="text-text-muted text-sm">Loading…</div>;
 
   const ranked = [...TEAM].sort((a, b) => (balances[b.id] ?? 0) - (balances[a.id] ?? 0));
@@ -60,7 +51,6 @@ export default function Leaderboard() {
               className="card p-4"
               style={idx === 0 ? { borderColor: 'var(--gold)' } : {}}
             >
-              {/* Top row: rank + avatar + name + P&L */}
               <div className="flex items-center gap-3">
                 <div className="font-display text-3xl w-8 text-center shrink-0 text-text-dim"
                   style={idx === 0 ? { color: 'var(--gold-bright)' } : idx === 1 ? { color: '#B8C5D6' } : idx === 2 ? { color: '#C4854A' } : {}}>
@@ -74,7 +64,6 @@ export default function Leaderboard() {
                   <div className="font-semibold">{member.name}</div>
                   <div className="text-xs mt-0.5" style={{ color: member.accent }}>★ {member.country}</div>
                 </div>
-                {/* P&L — always visible, right side */}
                 <div className="text-right shrink-0">
                   <div
                     className="font-display text-2xl"
@@ -94,26 +83,13 @@ export default function Leaderboard() {
                 </div>
               </div>
 
-              {/* Bottom row: stake info + balance input */}
               <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
                 <div className="text-xs text-text-muted">
                   Stake: <span className="text-white">£{STARTING_STAKE}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-text-muted">Balance:</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={bal}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      setBalances((b) => ({ ...b, [member.id]: isNaN(v) ? 0 : v }));
-                    }}
-                    onBlur={() => update(member.id, bal)}
-                    className="input-base text-right font-display text-sm"
-                    style={{ width: '90px' }}
-                  />
+                <div className="text-right">
+                  <div className="eyebrow">Balance</div>
+                  <div className="font-display text-lg" style={{ color: 'var(--gold-bright)' }}>£{bal.toFixed(2)}</div>
                 </div>
               </div>
             </div>

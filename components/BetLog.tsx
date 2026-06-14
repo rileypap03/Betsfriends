@@ -15,9 +15,21 @@ interface Bet {
   created_at: string;
 }
 
+interface ScannedBet {
+  event: string | null;
+  selection: string | null;
+  stake: number | null;
+  odds: number | null;
+  bet_type?: string;
+  legs?: string[];
+}
+
 export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } = {}) {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Manual add form (collapsed by default, expand via "+ Add manually")
+  const [showManualForm, setShowManualForm] = useState(false);
   const [form, setForm] = useState({
     player_id: 'fitz' as PlayerId,
     event: prefilledEvent || '',
@@ -26,6 +38,13 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
     odds: '',
   });
   const [fixtures, setFixtures] = useState<any[]>([]);
+
+  // Scan flow
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
+  const [scannedBet, setScannedBet] = useState<ScannedBet | null>(null);
+  const [scanPlayer, setScanPlayer] = useState<PlayerId>('fitz');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetch('/api/fixtures')
@@ -37,9 +56,6 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
         setFixtures(upcoming);
       });
   }, []);
-  const [submitting, setSubmitting] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const [scanError, setScanError] = useState('');
 
   async function load() {
     const res = await fetch('/api/bets');
@@ -54,7 +70,7 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
   async function handleScreenshot(e: any) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setScanning(true); setScanError('');
+    setScanning(true); setScanError(''); setScannedBet(null);
     const reader = new FileReader();
     reader.onload = async (ev: any) => {
       try {
@@ -62,12 +78,54 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
         const j = await res.json();
         if (j.error) { setScanError(j.error); setScanning(false); return; }
         const b = j.bet;
-        setForm({ player_id: form.player_id, event: b.event || '', selection: b.selection || (b.legs?.join(' + ') || ''), stake: b.stake ? String(b.stake) : '', odds: b.odds ? String(b.odds) : '' });
+        const event = b.bet_type === 'acca' && b.legs?.length ? 'Accumulator' : (b.event || '');
+        const selection = b.bet_type === 'acca' && b.legs?.length ? b.legs.join(' + ') : (b.selection || '');
+        setScannedBet({
+          event,
+          selection,
+          stake: b.stake ?? null,
+          odds: b.odds ?? null,
+          bet_type: b.bet_type,
+          legs: b.legs,
+        });
       } catch { setScanError('Could not read screenshot.'); }
       setScanning(false);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
+  }
+
+  async function confirmScannedBet() {
+    if (!scannedBet) return;
+    if (!scannedBet.event || !scannedBet.selection || !scannedBet.stake || !scannedBet.odds) {
+      setScanError('Missing some details — fill them in below or try scanning again.');
+      return;
+    }
+    setSubmitting(true);
+    const res = await fetch('/api/bets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        player_id: scanPlayer,
+        event: scannedBet.event,
+        selection: scannedBet.selection,
+        stake: scannedBet.stake,
+        odds: scannedBet.odds,
+      }),
+    });
+    if (res.ok) {
+      setScannedBet(null);
+      await load();
+    } else {
+      const j = await res.json();
+      setScanError(j.error || 'Failed to add bet');
+    }
+    setSubmitting(false);
+  }
+
+  function discardScannedBet() {
+    setScannedBet(null);
+    setScanError('');
   }
 
   async function addBet() {
@@ -167,64 +225,124 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
         </div>
       ))}
 
-      {/* Add form */}
+      {/* Scan-first add flow */}
       <div className="card p-4 space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
-          <div>
-            <label className="eyebrow block mb-1">Player</label>
-            <select value={form.player_id} onChange={(e) => setForm({ ...form, player_id: e.target.value as PlayerId })} className="input-base w-full">
-              {TEAM.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <label className="eyebrow block mb-1">Match</label>
-            <select value={form.event} onChange={(e) => setForm({ ...form, event: e.target.value })} className="input-base w-full">
-              <option value="">Select a match...</option>
-              {fixtures.map((f: any) => {
-                const label = f.teams.home.name + ' vs ' + f.teams.away.name;
-                const date = new Date(f.fixture.date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
-                return <option key={f.fixture.id} value={label}>{date} · {label}</option>;
-              })}
-              <option value="other">Other (type below)</option>
-            </select>
-          </div>
-          {form.event === 'other' && (
-          <div className="md:col-span-2">
-            <label className="eyebrow block mb-1">Custom match</label>
-            <input onChange={(e) => setForm({ ...form, event: e.target.value })} className="input-base w-full" placeholder="e.g. Brazil vs Argentina" />
-          </div>
-          )}
-          <div className="md:col-span-2">
-            <label className="eyebrow block mb-1">Selection</label>
-            <input value={form.selection} onChange={(e) => setForm({ ...form, selection: e.target.value })} className="input-base w-full" placeholder="e.g. Brazil to win" />
-          </div>
-          <div>
-            <label className="eyebrow block mb-1">Stake £</label>
-            <input type="number" step="0.01" value={form.stake} onChange={(e) => setForm({ ...form, stake: e.target.value })} className="input-base w-full" placeholder="10" />
-          </div>
-        </div>
-        <div className="flex items-end gap-2">
-          <div className="flex-1">
-            <label className="eyebrow block mb-1">Odds</label>
-            <input type="number" step="0.01" value={form.odds} onChange={(e) => setForm({ ...form, odds: e.target.value })} className="input-base w-full max-w-[120px]" placeholder="2.50" />
-          </div>
-          <div className="flex gap-2 items-center">
-            <button onClick={addBet} disabled={submitting || scanning} className="btn-primary">{submitting ? 'Adding...' : 'Add Bet'}</button>
-            <label className="cursor-pointer px-3 py-2 rounded-md text-xs font-bold border border-white/20 hover:border-gold transition-colors" title="Scan Sky Bet screenshot">
-              {scanning ? 'Reading...' : '📸 Scan'}
-              <input type="file" accept="image/*" className="hidden" onChange={handleScreenshot} disabled={scanning} />
+        {!scannedBet && !scanning && (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <label className="cursor-pointer btn-primary text-center">
+              📸 Scan Bet Slip
+              <input type="file" accept="image/*" className="hidden" onChange={handleScreenshot} />
             </label>
+            <button onClick={() => setShowManualForm((v) => !v)} className="text-xs text-text-muted underline">
+              {showManualForm ? 'Hide manual entry' : '+ Add manually instead'}
+            </button>
           </div>
-          {scanError && <p className="text-xs mt-1" style={{color:'var(--red-bright)'}}>{scanError}</p>}
-          {scanning && <p className="text-xs mt-1 text-text-muted">Reading your bet screenshot...</p>}
-        </div>
+        )}
+
+        {scanning && (
+          <div className="text-center py-6 text-text-muted text-sm">
+            <div className="animate-pulse">Reading your bet screenshot...</div>
+          </div>
+        )}
+
+        {scanError && (
+          <div className="text-xs p-2 rounded" style={{ color: 'var(--red-bright)', background: 'rgba(228,0,43,0.06)' }}>
+            {scanError}
+          </div>
+        )}
+
+        {/* Scanned bet preview/confirmation */}
+        {scannedBet && (
+          <div className="space-y-3">
+            <div className="eyebrow">Scanned bet — review &amp; confirm</div>
+            <div>
+              <label className="eyebrow block mb-1">Player</label>
+              <select value={scanPlayer} onChange={(e) => setScanPlayer(e.target.value as PlayerId)} className="input-base w-full">
+                {TEAM.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+            <div className="card p-3" style={{ background: 'rgba(201,168,76,0.06)', borderColor: 'rgba(201,168,76,0.3)' }}>
+              <div className="font-semibold text-sm break-words">{scannedBet.event}</div>
+              <div className="text-xs text-text-muted mt-1 break-words whitespace-pre-wrap">{scannedBet.selection}</div>
+              <div className="flex gap-4 mt-2">
+                <div>
+                  <div className="text-[10px] eyebrow">Stake</div>
+                  <div className="font-display">£{scannedBet.stake?.toFixed(2) ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] eyebrow">Odds</div>
+                  <div className="font-display">{scannedBet.odds?.toFixed(2) ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] eyebrow">Potential</div>
+                  <div className="font-display" style={{ color: 'var(--gold-bright)' }}>
+                    £{scannedBet.stake && scannedBet.odds ? (scannedBet.stake * scannedBet.odds).toFixed(2) : '—'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={confirmScannedBet} disabled={submitting} className="btn-primary flex-1">
+                {submitting ? 'Adding...' : '✓ Confirm & Add'}
+              </button>
+              <button onClick={discardScannedBet} className="btn-secondary">Discard</button>
+            </div>
+          </div>
+        )}
+
+        {/* Manual form */}
+        {showManualForm && !scannedBet && !scanning && (
+          <div className="space-y-3 pt-2 border-t border-white/10">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+              <div>
+                <label className="eyebrow block mb-1">Player</label>
+                <select value={form.player_id} onChange={(e) => setForm({ ...form, player_id: e.target.value as PlayerId })} className="input-base w-full">
+                  {TEAM.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="eyebrow block mb-1">Match</label>
+                <select value={form.event} onChange={(e) => setForm({ ...form, event: e.target.value })} className="input-base w-full">
+                  <option value="">Select a match...</option>
+                  {fixtures.map((f: any) => {
+                    const label = f.teams.home.name + ' vs ' + f.teams.away.name;
+                    const date = new Date(f.fixture.date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+                    return <option key={f.fixture.id} value={label}>{date} · {label}</option>;
+                  })}
+                  <option value="other">Other (type below)</option>
+                </select>
+              </div>
+              {form.event === 'other' && (
+              <div className="md:col-span-2">
+                <label className="eyebrow block mb-1">Custom match</label>
+                <input onChange={(e) => setForm({ ...form, event: e.target.value })} className="input-base w-full" placeholder="e.g. Brazil vs Argentina" />
+              </div>
+              )}
+              <div className="md:col-span-2">
+                <label className="eyebrow block mb-1">Selection</label>
+                <input value={form.selection} onChange={(e) => setForm({ ...form, selection: e.target.value })} className="input-base w-full" placeholder="e.g. Brazil to win" />
+              </div>
+              <div>
+                <label className="eyebrow block mb-1">Stake £</label>
+                <input type="number" step="0.01" value={form.stake} onChange={(e) => setForm({ ...form, stake: e.target.value })} className="input-base w-full" placeholder="10" />
+              </div>
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="eyebrow block mb-1">Odds</label>
+                <input type="number" step="0.01" value={form.odds} onChange={(e) => setForm({ ...form, odds: e.target.value })} className="input-base w-full max-w-[120px]" placeholder="2.50" />
+              </div>
+              <button onClick={addBet} disabled={submitting} className="btn-primary">{submitting ? 'Adding...' : 'Add Bet'}</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bets list */}
       <div className="space-y-2">
         {loading && <div className="text-text-muted text-sm">Loading bets…</div>}
         {!loading && bets.length === 0 && (
-          <div className="text-center py-10 text-text-dim text-sm">No bets logged yet. Add your first bet above.</div>
+          <div className="text-center py-10 text-text-dim text-sm">No bets logged yet. Scan a bet slip above to get started.</div>
         )}
         {bets.map((bet) => {
           const player = TEAM.find((t) => t.id === bet.player_id)!;
@@ -237,7 +355,7 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
           return (
             <div
               key={bet.id}
-              className={`card p-3 grid grid-cols-[28px_1fr_auto_auto_auto_auto] gap-3 items-center text-sm ${bet.status === 'lost' ? 'opacity-70' : ''} ${bet.status === 'void' ? 'opacity-50' : ''}`}
+              className={`card p-3 text-sm ${bet.status === 'lost' ? 'opacity-70' : ''} ${bet.status === 'void' ? 'opacity-50' : ''}`}
               style={{
                 borderColor: isConflict ? 'rgba(228,0,43,0.5)' : undefined,
                 background: isConflict ? 'rgba(228,0,43,0.05)' : undefined,
@@ -245,40 +363,46 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
                 borderLeftColor: bet.status === 'won' ? 'var(--green-bright)' : bet.status === 'lost' ? 'var(--red-bright)' : undefined,
               }}
             >
-              <div
-                className="w-7 h-7 rounded bg-cover bg-center"
-                style={{ backgroundImage: `url(${player.avatar})`, backgroundColor: player.color }}
-              />
-
-              <div>
-                <div className="font-semibold">{bet.event}</div>
-                <div className="text-xs text-text-muted">{player.name} · {bet.selection}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] eyebrow">Stake</div>
-                <div className="font-display">£{stake.toFixed(2)}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] eyebrow">Odds</div>
-                <div className="font-display">{odds.toFixed(2)}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] eyebrow">{bet.status === 'open' ? 'Potential' : bet.status === 'won' ? 'Won' : bet.status === 'lost' ? 'Lost' : '—'}</div>
-                <div className="font-display" style={{ color: bet.status === 'won' ? 'var(--green-bright)' : bet.status === 'lost' ? 'var(--red-bright)' : 'var(--gold-bright)' }}>
-                  {bet.status === 'lost' ? `−£${stake.toFixed(2)}` : bet.status === 'won' ? `+£${profit.toFixed(2)}` : bet.status === 'void' ? 'VOID' : `£${potential.toFixed(2)}`}
+              <div className="flex items-start gap-3">
+                <div
+                  className="w-7 h-7 rounded bg-cover bg-center shrink-0"
+                  style={{ backgroundImage: `url(${player.avatar})`, backgroundColor: player.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold break-words">{bet.event}</div>
+                  <div className="text-xs text-text-muted mt-0.5 break-words whitespace-pre-wrap">{player.name} · {bet.selection}</div>
                 </div>
               </div>
-              <div className="flex gap-1">
-                {bet.status === 'open' ? (
-                  <>
-                    <button onClick={() => setStatus(bet.id, 'won')} className="btn-secondary !px-2 !py-1 !text-[10px]">W</button>
-                    <button onClick={() => setStatus(bet.id, 'lost')} className="btn-secondary !px-2 !py-1 !text-[10px]">L</button>
-                    <button onClick={() => setStatus(bet.id, 'void')} className="btn-secondary !px-2 !py-1 !text-[10px]">V</button>
-                  </>
-                ) : (
-                  <button onClick={() => setStatus(bet.id, 'open')} className="btn-secondary !px-2 !py-1 !text-[10px]">Reopen</button>
-                )}
-                <button onClick={() => deleteBet(bet.id)} className="btn-secondary !px-2 !py-1 !text-[10px]">✕</button>
+
+              <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-white/5">
+                <div className="flex gap-4">
+                  <div>
+                    <div className="text-[10px] eyebrow">Stake</div>
+                    <div className="font-display">£{stake.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] eyebrow">Odds</div>
+                    <div className="font-display">{odds.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] eyebrow">{bet.status === 'open' ? 'Potential' : bet.status === 'won' ? 'Won' : bet.status === 'lost' ? 'Lost' : '—'}</div>
+                    <div className="font-display" style={{ color: bet.status === 'won' ? 'var(--green-bright)' : bet.status === 'lost' ? 'var(--red-bright)' : 'var(--gold-bright)' }}>
+                      {bet.status === 'lost' ? `−£${stake.toFixed(2)}` : bet.status === 'won' ? `+£${profit.toFixed(2)}` : bet.status === 'void' ? 'VOID' : `£${potential.toFixed(2)}`}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  {bet.status === 'open' ? (
+                    <>
+                      <button onClick={() => setStatus(bet.id, 'won')} className="btn-secondary !px-2 !py-1 !text-[10px]">W</button>
+                      <button onClick={() => setStatus(bet.id, 'lost')} className="btn-secondary !px-2 !py-1 !text-[10px]">L</button>
+                      <button onClick={() => setStatus(bet.id, 'void')} className="btn-secondary !px-2 !py-1 !text-[10px]">V</button>
+                    </>
+                  ) : (
+                    <button onClick={() => setStatus(bet.id, 'open')} className="btn-secondary !px-2 !py-1 !text-[10px]">Reopen</button>
+                  )}
+                  <button onClick={() => deleteBet(bet.id)} className="btn-secondary !px-2 !py-1 !text-[10px]">✕</button>
+                </div>
               </div>
             </div>
           );

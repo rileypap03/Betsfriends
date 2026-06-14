@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         player_id,
         fixture_id: fixture_id || null,
         event: String(event).slice(0, 200),
-        selection: String(selection).slice(0, 200),
+        selection: String(selection).slice(0, 500),
         stake: s,
         odds: o,
         screenshot_url: screenshot_url || null,
@@ -58,15 +58,6 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Invalid update' }, { status: 400 });
     }
     const settled_at = status === 'open' ? null : new Date().toISOString();
-
-    // Get the bet first so we can adjust the balance
-    const { data: existing, error: fetchErr } = await supabase()
-      .from('bets')
-      .select('*')
-      .eq('id', id)
-      .single();
-    if (fetchErr) throw fetchErr;
-
     const { data, error } = await supabase()
       .from('bets')
       .update({ status, settled_at })
@@ -74,38 +65,6 @@ export async function PATCH(req: Request) {
       .select()
       .single();
     if (error) throw error;
-
-    // Auto-update balance based on bet outcome
-    const stake = parseFloat(existing.stake);
-    const odds = parseFloat(existing.odds);
-    const profit = stake * odds - stake;
-    const prevStatus = existing.status;
-
-    // Only adjust if transitioning from open, or re-opening
-    if (prevStatus !== status) {
-      const { data: balRow } = await supabase()
-        .from('balances')
-        .select('balance')
-        .eq('player_id', existing.player_id)
-        .single();
-
-      if (balRow) {
-        let currentBalance = parseFloat(balRow.balance);
-        // Reverse previous effect first (if reopening a settled bet)
-        if (prevStatus === 'won') currentBalance -= profit;
-        if (prevStatus === 'lost') currentBalance += stake;
-        // Apply new effect
-        if (status === 'won') currentBalance += profit;
-        if (status === 'lost') currentBalance -= stake;
-
-        const now = new Date().toISOString();
-        await Promise.all([
-          supabase().from('balances').upsert({ player_id: existing.player_id, balance: currentBalance, updated_at: now }),
-          supabase().from('balance_history').insert({ player_id: existing.player_id, balance: currentBalance, recorded_at: now }),
-        ]);
-      }
-    }
-
     return NextResponse.json({ bet: data });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
