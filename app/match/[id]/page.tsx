@@ -62,11 +62,14 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
           <div className="flex items-center justify-between gap-2">
 
             {/* Home team */}
-            <div className="flex-1 flex flex-col items-center gap-2 text-center">
+            <Link
+              href={`/team/${home.id}?name=${encodeURIComponent(home.name)}&crest=${encodeURIComponent(home.logo || '')}`}
+              className="flex-1 flex flex-col items-center gap-2 text-center hover:opacity-75 transition-opacity"
+            >
               {home.logo && <img src={home.logo} alt={home.name} className="w-14 h-14 object-contain" />}
               <span className="font-semibold text-sm leading-tight">{home.name}</span>
               {isFinished && home.winner && <span className="text-[10px] font-bold tracking-widest" style={{ color: 'var(--gold)' }}>WINNER</span>}
-            </div>
+            </Link>
 
             {/* Score / VS */}
             <div className="flex flex-col items-center gap-1 min-w-[80px]">
@@ -96,11 +99,14 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
             </div>
 
             {/* Away team */}
-            <div className="flex-1 flex flex-col items-center gap-2 text-center">
+            <Link
+              href={`/team/${away.id}?name=${encodeURIComponent(away.name)}&crest=${encodeURIComponent(away.logo || '')}`}
+              className="flex-1 flex flex-col items-center gap-2 text-center hover:opacity-75 transition-opacity"
+            >
               {away.logo && <img src={away.logo} alt={away.name} className="w-14 h-14 object-contain" />}
               <span className="font-semibold text-sm leading-tight">{away.name}</span>
               {isFinished && away.winner && <span className="text-[10px] font-bold tracking-widest" style={{ color: 'var(--gold)' }}>WINNER</span>}
-            </div>
+            </Link>
           </div>
 
           {/* Venue */}

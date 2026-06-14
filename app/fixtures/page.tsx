@@ -93,12 +93,15 @@ function FixtureCard({ fixture: f, onGroupClick }: { fixture: any; onGroupClick:
           )
         )}
       </div>
-      <Link href={"/match/" + f.fixture.id} className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/team/${f.teams.home.id}?name=${encodeURIComponent(f.teams.home.name)}&crest=${encodeURIComponent(f.teams.home.logo || '')}`}
+          className="flex items-center gap-1.5 flex-1 min-w-0 hover:opacity-75 transition-opacity"
+        >
           {f.teams.home.logo && <img src={f.teams.home.logo} alt="" className="w-5 h-5 shrink-0" />}
           <span className="text-xs font-semibold truncate">{f.teams.home.name}</span>
-        </div>
-        <div className="shrink-0 flex items-center gap-1 px-1">
+        </Link>
+        <Link href={"/match/" + f.fixture.id} className="shrink-0 flex items-center gap-1 px-1">
           {hasScore ? (
             <span className="font-display text-sm">{f.goals.home} - {f.goals.away}</span>
           ) : (
@@ -106,16 +109,19 @@ function FixtureCard({ fixture: f, onGroupClick }: { fixture: any; onGroupClick:
               {new Date(f.fixture.date).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })}
             </span>
           )}
-        </div>
-        <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+        </Link>
+        <Link
+          href={`/team/${f.teams.away.id}?name=${encodeURIComponent(f.teams.away.name)}&crest=${encodeURIComponent(f.teams.away.logo || '')}`}
+          className="flex items-center gap-1.5 flex-1 min-w-0 justify-end hover:opacity-75 transition-opacity"
+        >
           <span className="text-xs font-semibold truncate text-right">{f.teams.away.name}</span>
           {f.teams.away.logo && <img src={f.teams.away.logo} alt="" className="w-5 h-5 shrink-0" />}
-        </div>
-        <div className="w-8 text-right shrink-0">
+        </Link>
+        <Link href={"/match/" + f.fixture.id} className="w-8 text-right shrink-0">
           {isLive && <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{background:'rgba(230,29,37,0.15)',color:'#E61D25'}}>LIVE</span>}
           {isFinished && <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{background:'rgba(255,255,255,0.06)',color:'#9A9A9A'}}>FT</span>}
-        </div>
-      </Link>
+        </Link>
+      </div>
     </div>
   );
 }
