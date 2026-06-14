@@ -22,14 +22,14 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
 
   if (loading) return (
     <main className="max-w-3xl mx-auto p-4 relative z-10">
-      <Header />
+      <Header back />
       <div className="text-text-muted text-sm">Loading match…</div>
     </main>
   );
 
   if (error) return (
     <main className="max-w-3xl mx-auto p-4 relative z-10">
-      <Header />
+      <Header back />
       <div className="card p-4 text-red-bright">{error}</div>
     </main>
   );
@@ -45,7 +45,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
 
   return (
     <main className="max-w-3xl mx-auto p-4 pb-24 relative z-10">
-      <Header />
+      <Header back />
 
       {/* FIFA-style match card */}
       <div className="card mb-4 overflow-hidden">

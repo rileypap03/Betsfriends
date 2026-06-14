@@ -9,13 +9,41 @@ const NAV = [
   { href: '/bets', label: 'Bet Lab' },
 ];
 
-export default function Header() {
+export default function Header({ back }: { back?: boolean } = {}) {
   const pathname = usePathname();
   const router = useRouter();
 
   async function logout() {
     await fetch('/api/logout', { method: 'POST' });
     router.push('/login');
+  }
+
+  if (back) {
+    return (
+      <header className="card mb-6 relative overflow-hidden">
+        <div className="flag-stripe absolute top-0 left-0 right-0" />
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 p-4 pt-6">
+          <button
+            onClick={() => router.back()}
+            className="btn-secondary !px-3 !py-1.5 flex items-center gap-1.5 text-sm"
+            aria-label="Back"
+          >
+            <span aria-hidden="true">←</span>
+            <span className="hidden sm:inline">Back</span>
+          </button>
+
+          <Link href="/" className="flex items-center justify-center gap-2 group">
+            <div className="font-display text-2xl leading-none">
+              <span className="text-gold-bright italic">2</span>
+              <span className="text-gold italic">6</span>
+            </div>
+            <div className="display-title text-base italic">BetsFriends</div>
+          </Link>
+
+          <div className="w-[68px] sm:w-[78px]" aria-hidden="true" />
+        </div>
+      </header>
+    );
   }
 
   return (
