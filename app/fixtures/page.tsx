@@ -77,31 +77,34 @@ function FixtureCard({ fixture: f, onGroupClick }: { fixture: any; onGroupClick:
   const isGroupRound = /^Group [A-Z]$/i.test(round);
   return (
     <div className="block card p-3 hover:bg-bg-hover transition-colors">
-      <div className="text-[10px] text-text-muted mb-2 flex items-center justify-between">
-        <span>
+      <div className="flex items-center justify-between mb-2">
+        {isGroupRound ? (
+          <button
+            onClick={(e) => { e.preventDefault(); onGroupClick(round); }}
+            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full transition-colors"
+            style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}
+          >
+            {round}
+          </button>
+        ) : round ? (
+          <span
+            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(255,255,255,0.06)', color: '#9A9A9A' }}
+          >
+            {round}
+          </span>
+        ) : <span />}
+        <span className="text-[10px] text-text-muted">
           {new Date(f.fixture.date).toLocaleDateString('en-GB', { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}
         </span>
-        {round && (
-          isGroupRound ? (
-            <button
-              onClick={(e) => { e.preventDefault(); onGroupClick(round); }}
-              className="font-bold uppercase tracking-wider hover:text-gold transition-colors"
-              style={{ color: '#C9A84C' }}
-            >
-              {round} →
-            </button>
-          ) : (
-            <span>{round}</span>
-          )
-        )}
       </div>
       <div className="flex items-center gap-2">
         <Link
           href={`/team/${f.teams.home.id}?name=${encodeURIComponent(f.teams.home.name)}&crest=${encodeURIComponent(f.teams.home.logo || '')}`}
-          className="flex items-center gap-1.5 flex-1 min-w-0 hover:opacity-75 transition-opacity"
+          className="flex items-center gap-1.5 flex-1 min-w-0 justify-end hover:opacity-75 transition-opacity"
         >
+          <span className="text-xs font-semibold truncate text-right">{f.teams.home.name}</span>
           {f.teams.home.logo && <img src={f.teams.home.logo} alt="" className="w-5 h-5 shrink-0" />}
-          <span className="text-xs font-semibold truncate">{f.teams.home.name}</span>
         </Link>
         <Link href={"/match/" + f.fixture.id} className="shrink-0 flex items-center gap-1 px-1">
           {hasScore ? (
@@ -114,10 +117,10 @@ function FixtureCard({ fixture: f, onGroupClick }: { fixture: any; onGroupClick:
         </Link>
         <Link
           href={`/team/${f.teams.away.id}?name=${encodeURIComponent(f.teams.away.name)}&crest=${encodeURIComponent(f.teams.away.logo || '')}`}
-          className="flex items-center gap-1.5 flex-1 min-w-0 justify-end hover:opacity-75 transition-opacity"
+          className="flex items-center gap-1.5 flex-1 min-w-0 hover:opacity-75 transition-opacity"
         >
-          <span className="text-xs font-semibold truncate text-right">{f.teams.away.name}</span>
           {f.teams.away.logo && <img src={f.teams.away.logo} alt="" className="w-5 h-5 shrink-0" />}
+          <span className="text-xs font-semibold truncate">{f.teams.away.name}</span>
         </Link>
         <Link href={"/match/" + f.fixture.id} className="w-8 text-right shrink-0">
           {isLive && <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{background:'rgba(230,29,37,0.15)',color:'#E61D25'}}>LIVE</span>}
