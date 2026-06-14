@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
 import BetLog from '@/components/BetLog';
+import DailyTips from '@/components/DailyTips';
 import { FlaskConical } from 'lucide-react';
 
 export default function BetsPage() {
@@ -14,6 +15,9 @@ export default function BetsPage() {
         <p className="text-sm text-text-muted mb-4">
           Every bet logged by the team, in one place. The conflict detector flags when two of you are on opposite sides of the same market.
         </p>
+        <div className="mb-4">
+          <DailyTips />
+        </div>
         <BetLog />
       </section>
     </main>
