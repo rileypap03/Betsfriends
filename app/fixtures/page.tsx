@@ -207,10 +207,13 @@ function GroupTables({ standings, jumpTo }: { standings: any[]; jumpTo?: string 
                 <tr key={row.team?.id ?? i} className="border-b border-white/5 last:border-0">
                   <td className="px-3 py-2" style={{color:'#9A9A9A'}}>{row.position ?? i + 1}</td>
                   <td className="px-2 py-2">
-                    <div className="flex items-center gap-1.5">
-                      {row.team?.logo && <img src={row.team.logo} alt="" className="w-4 h-4 shrink-0" />}
+                    <Link
+                      href={`/team/${row.team?.id}?name=${encodeURIComponent(row.team?.name || '')}&crest=${encodeURIComponent(row.team?.crest || row.team?.logo || '')}`}
+                      className="flex items-center gap-1.5 hover:opacity-75 transition-opacity"
+                    >
+                      {(row.team?.crest || row.team?.logo) && <img src={row.team.crest || row.team.logo} alt="" className="w-4 h-4 shrink-0" />}
                       <span className="truncate font-medium" style={{maxWidth:'80px'}}>{row.team?.name}</span>
-                    </div>
+                    </Link>
                   </td>
                   <td className="text-center px-1 py-2" style={{color:'#9A9A9A'}}>{row.playedGames ?? 0}</td>
                   <td className="text-center px-1 py-2" style={{color:'#9A9A9A'}}>{row.won ?? 0}</td>
