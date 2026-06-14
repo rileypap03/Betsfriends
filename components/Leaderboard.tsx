@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { TEAM, STARTING_STAKE, PlayerId } from '@/lib/types';
 
 interface Balance { player_id: PlayerId; balance: number; updated_at: string; }
@@ -46,9 +47,10 @@ export default function Leaderboard() {
           const pct = (pnl / STARTING_STAKE) * 100;
           const dir = pnl > 0 ? 'up' : pnl < 0 ? 'down' : 'flat';
           return (
-            <div
+            <Link
               key={member.id}
-              className="card p-4"
+              href={`/player/${member.id}`}
+              className="card p-4 block hover:bg-bg-hover transition-colors"
               style={idx === 0 ? { borderColor: 'var(--gold)' } : {}}
             >
               <div className="flex items-center gap-3">
@@ -92,7 +94,7 @@ export default function Leaderboard() {
                   <div className="font-display text-lg" style={{ color: 'var(--gold-bright)' }}>£{bal.toFixed(2)}</div>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
