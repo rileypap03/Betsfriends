@@ -44,10 +44,10 @@ export default function FixturesPage() {
   return (
     <main className="max-w-3xl mx-auto p-4 pb-24 relative z-10">
       <Header />
-      <div className="flex gap-1 mb-4 card p-1">
-        {['upcoming','live','finished','groups','all'].map((f) => (
+      <div className="flex gap-1 mb-4 card p-1 overflow-x-auto">
+        {['upcoming','live','finished','groups','bracket','all'].map((f) => (
           <button key={f} onClick={() => { setFilter(f); if (f !== 'groups') setJumpGroup(null); }}
-            className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors"
+            className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
             style={filter === f ? { background: 'rgba(255,255,255,0.1)', color: 'white' } : { color: '#9A9A9A' }}>
             {f}
           </button>
@@ -56,6 +56,8 @@ export default function FixturesPage() {
       {loading && <div className="text-text-muted text-sm">Loading...</div>}
       {filter === 'groups' ? (
         <GroupTables standings={standings} jumpTo={jumpGroup} />
+      ) : filter === 'bracket' ? (
+        <BracketView fixtures={fixtures} />
       ) : (
         <div className="space-y-2">
           {!loading && filtered.length === 0 && <div className="text-center py-8 text-text-dim text-sm">No matches.</div>}
@@ -228,5 +230,123 @@ function GroupTables({ standings, jumpTo }: { standings: any[]; jumpTo?: string 
         </div>
       ))}
     </div>
+  );
+}
+
+// World Cup 2026 knockout stages in order, with display labels.
+const KNOCKOUT_STAGES: { key: string; label: string; short: string }[] = [
+  { key: 'Last 32', label: 'Round of 32', short: 'R32' },
+  { key: 'Last 16', label: 'Round of 16', short: 'R16' },
+  { key: 'Quarter Finals', label: 'Quarter-Finals', short: 'QF' },
+  { key: 'Semi Finals', label: 'Semi-Finals', short: 'SF' },
+  { key: 'Third Place', label: '3rd Place Play-off', short: '3RD' },
+  { key: 'Final', label: 'Final', short: 'F' },
+];
+
+function BracketView({ fixtures }: { fixtures: any[] }) {
+  const byStage = new Map<string, any[]>();
+  for (const f of fixtures) {
+    const round = f.league?.round || '';
+    const stage = KNOCKOUT_STAGES.find((s) => round.toLowerCase() === s.key.toLowerCase());
+    if (!stage) continue;
+    if (!byStage.has(stage.key)) byStage.set(stage.key, []);
+    byStage.get(stage.key)!.push(f);
+  }
+
+  const activeStages = KNOCKOUT_STAGES.filter((s) => byStage.has(s.key) && s.key !== 'Third Place');
+  const thirdPlace = byStage.get('Third Place') || [];
+
+  if (activeStages.length === 0) {
+    return (
+      <div className="card p-6 text-center text-text-dim text-sm space-y-2">
+        <div className="font-display text-lg text-text-muted">Road to the Final</div>
+        <p>
+          The knockout bracket isn't in the schedule yet. The Round of 32 kicks off once the group stage
+          finishes — 12 group winners, 12 runners-up, and the best 8 third-placed teams go through.
+        </p>
+        <p className="text-xs">Check back after the final group games to see the path to MetLife Stadium, NJ on 19 July.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="card p-3 text-center">
+        <div className="eyebrow">World Cup 26 Final</div>
+        <div className="font-display text-lg" style={{ color: 'var(--gold-bright)' }}>19 July · MetLife Stadium, New Jersey</div>
+      </div>
+
+      {/* Horizontally scrollable wall chart */}
+      <div className="overflow-x-auto -mx-4 px-4">
+        <div className="flex gap-3 min-w-max pb-2">
+          {activeStages.map((stage) => {
+            const games = (byStage.get(stage.key) || []).sort((a, b) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime());
+            return (
+              <div key={stage.key} className="flex flex-col gap-2" style={{ width: 220 }}>
+                <div className="eyebrow text-center mb-1" style={{ color: '#C9A84C' }}>{stage.label}</div>
+                <div className="flex flex-col gap-2 justify-around flex-1">
+                  {games.map((f) => <BracketMatch key={f.fixture.id} fixture={f} />)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {thirdPlace.length > 0 && (
+        <div>
+          <div className="eyebrow text-center mb-2" style={{ color: '#C9A84C' }}>3rd Place Play-off</div>
+          <div className="max-w-[220px] mx-auto">
+            {thirdPlace.map((f) => <BracketMatch key={f.fixture.id} fixture={f} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BracketMatch({ fixture: f }: { fixture: any }) {
+  const s = f.fixture.status.short;
+  const isFinished = ['FT','AET','PEN'].includes(s);
+  const isLive = ['1H','2H','HT','ET','P'].includes(s);
+  const hasScore = f.goals.home !== null;
+  const homeName = f.teams.home.name || 'TBD';
+  const awayName = f.teams.away.name || 'TBD';
+  const homeWon = f.teams.home.winner === true;
+  const awayWon = f.teams.away.winner === true;
+
+  const TeamRow = ({ name, logo, id, won, score }: { name: string; logo?: string; id?: number; won: boolean; score: number | null }) => {
+    const content = (
+      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+        {logo && <img src={logo} alt="" className="w-4 h-4 shrink-0" />}
+        <span className={`text-xs truncate ${won ? 'font-bold' : ''}`} style={{ color: won ? 'white' : name === 'TBD' ? '#5A5A5A' : '#9A9A9A' }}>
+          {name}
+        </span>
+      </div>
+    );
+    return (
+      <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+        {id ? (
+          <Link href={`/team/${id}?name=${encodeURIComponent(name)}&crest=${encodeURIComponent(logo || '')}`} className="flex-1 min-w-0 hover:opacity-75 transition-opacity">
+            {content}
+          </Link>
+        ) : content}
+        {hasScore && <span className="font-display text-xs shrink-0" style={{ color: won ? 'var(--gold-bright)' : '#9A9A9A' }}>{score}</span>}
+      </div>
+    );
+  };
+
+  return (
+    <Link href={`/match/${f.fixture.id}`} className="card overflow-hidden block hover:bg-bg-hover transition-colors">
+      <div className="text-[9px] text-text-dim px-2 pt-1.5 flex items-center justify-between">
+        <span>{new Date(f.fixture.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
+        {isLive && <span className="font-bold px-1 py-0.5 rounded" style={{background:'rgba(230,29,37,0.15)',color:'#E61D25'}}>LIVE</span>}
+        {isFinished && <span className="font-bold px-1 py-0.5 rounded" style={{background:'rgba(255,255,255,0.06)',color:'#9A9A9A'}}>FT</span>}
+      </div>
+      <div className="divide-y divide-white/5">
+        <TeamRow name={homeName} logo={f.teams.home.logo} id={f.teams.home.id} won={isFinished && homeWon} score={f.goals.home} />
+        <TeamRow name={awayName} logo={f.teams.away.logo} id={f.teams.away.id} won={isFinished && awayWon} score={f.goals.away} />
+      </div>
+    </Link>
   );
 }
