@@ -20,7 +20,7 @@ export default function Header({ back }: { back?: boolean } = {}) {
 
   if (back) {
     return (
-      <header className="card mb-6 relative overflow-hidden">
+      <header className="card mb-6 relative overflow-hidden sticky top-0 z-50" style={{ background: 'var(--bg-card)' }}>
         <div className="flag-stripe absolute top-0 left-0 right-0" />
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 p-4 pt-6">
           <button
@@ -47,7 +47,7 @@ export default function Header({ back }: { back?: boolean } = {}) {
   }
 
   return (
-    <header className="card mb-6 relative overflow-hidden">
+    <header className="card mb-6 relative overflow-hidden sticky top-0 z-50" style={{ background: 'var(--bg-card)' }}>
       <div className="flag-stripe absolute top-0 left-0 right-0" />
       <div className="flex items-center justify-between p-5 pt-7">
         <Link href="/" className="flex items-center gap-4 group">
