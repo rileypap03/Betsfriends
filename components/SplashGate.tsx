@@ -24,7 +24,7 @@ export default function SplashGate({ children }: { children: React.ReactNode }) 
           className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-500 ${
             fadeOut ? 'opacity-0' : 'opacity-100'
           }`}
-          style={{ background: '#020F2A', pointerEvents: fadeOut ? 'none' : 'auto' }}
+          style={{ background: '#0A0A0A', pointerEvents: fadeOut ? 'none' : 'auto' }}
         >
           {/* Host nation stripe */}
           <div className="absolute top-0 left-0 right-0 h-[3px] flex">
@@ -51,13 +51,19 @@ export default function SplashGate({ children }: { children: React.ReactNode }) 
             <div className="splash-name font-display text-white text-5xl md:text-6xl italic mb-6 opacity-0 animate-[fadeUp_0.6s_0.25s_forwards]">
               BetsFriends
             </div>
-            <div className="relative w-full opacity-0 animate-[fadeUp_0.7s_0.45s_forwards]">
-              <img
-                src="/betsfriends-team.png"
-                alt="BetsFriends team"
-                className="w-full h-auto rounded-xl"
-                style={{ filter: 'drop-shadow(0 8px 32px rgba(0,0,0,0.5))' }}
-              />
+            <div className="relative w-full flex justify-center opacity-0 animate-[fadeUp_0.7s_0.45s_forwards]">
+              <div
+                className="font-display text-7xl"
+                style={{
+                  background: 'linear-gradient(135deg, #1F3A8A 0%, #DC2626 50%, #047857 100%)',
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                  color: 'transparent',
+                  filter: 'drop-shadow(0 8px 32px rgba(0,0,0,0.5))',
+                }}
+              >
+                ⚽
+              </div>
             </div>
             <div className="splash-tag mt-6 text-text-muted text-xs font-bold tracking-[3px] opacity-0 animate-[fadeUp_0.6s_0.7s_forwards]">
               TWO IRISH  ·  TWO ENGLISH
