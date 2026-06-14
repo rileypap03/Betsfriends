@@ -71,14 +71,20 @@ export default function PlayerPage({ params }: { params: { id: string } }) {
       <Header back />
 
       {/* Player header card */}
-      <div className="card mb-4 overflow-hidden">
-        <div className="px-4 py-6 flex flex-col items-center gap-3">
+      <div className="card mb-4 overflow-hidden relative">
+        <div className="flag-stripe absolute top-0 left-0 right-0" />
+        <div className="px-4 pt-10 pb-6 flex flex-col items-center gap-3">
           <div
-            className="w-16 h-16 rounded-xl bg-cover bg-center border-2"
-            style={{ backgroundImage: `url(${player.avatar})`, backgroundColor: player.color, borderColor: player.accent }}
+            className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-cover bg-center border-4 shadow-lg"
+            style={{
+              backgroundImage: `url(${player.avatar})`,
+              backgroundColor: player.color,
+              borderColor: player.accent,
+              boxShadow: `0 0 0 6px rgba(0,0,0,0.2), 0 8px 32px ${player.accent}40`,
+            }}
           />
-          <div className="display-title text-2xl italic text-center">{player.name}</div>
-          <div className="text-xs font-bold tracking-wide" style={{ color: player.accent }}>★ {player.country}</div>
+          <div className="display-title text-3xl md:text-4xl italic text-center mt-1">{player.name}</div>
+          <div className="text-xs font-bold tracking-widest uppercase" style={{ color: player.accent }}>★ {player.country}</div>
         </div>
       </div>
 
