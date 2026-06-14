@@ -145,10 +145,15 @@ function normalizeMatch(m: any): any {
 // PUBLIC API — same signatures as before, now backed by football-data.org
 // =========================================================================
 
+const LIVE_STATUSES = ['1H', '2H', 'HT', 'ET', 'P'];
+
 export async function getFixtures(): Promise<any[]> {
   const cacheKey = `fd:fixtures:${SEASON}`;
   const cached = await getCache(cacheKey, TTL.fixtures);
-  if (cached) return cached;
+  if (cached) {
+    const hasLive = (cached as any[]).some((m) => LIVE_STATUSES.includes(m?.fixture?.status?.short));
+    if (!hasLive) return cached;
+  }
   const json = await fetchFD(`/competitions/${COMPETITION_CODE}/matches?season=${SEASON}`);
   const matches = (json.matches || []).map(normalizeMatch);
   await setCache(cacheKey, matches);
@@ -160,7 +165,7 @@ export async function getFixture(id: number): Promise<any> {
   const cached = await getCache(cacheKey, TTL.match_details);
   if (cached) {
     const status = cached?.[0]?.fixture?.status?.short;
-    const isLive = ['1H', '2H', 'HT'].includes(status);
+    const isLive = LIVE_STATUSES.includes(status);
     if (!isLive) return cached;
   }
   const json = await fetchFD(`/matches/${id}`);
