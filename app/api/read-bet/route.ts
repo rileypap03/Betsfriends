@@ -11,15 +11,30 @@ export async function POST(req: Request) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 500, messages: [{ role: 'user', content: [
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 500, messages: [{ role: 'user', content: [
         { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-        { type: 'text', text: 'This is a betting app screenshot. Return ONLY valid JSON: {"event":"match name","selection":"what was bet on","stake":10.00,"odds":2.50,"bet_type":"single|acca|bet_builder","legs":["leg1","leg2"]}. For accas set event to Accumulator, odds to total odds, legs to each selection. Use null if not visible.' }
+        { type: 'text', text: 'This is a betting app screenshot. Return ONLY valid JSON (no markdown, no preamble): {"event":"match name","selection":"what was bet on","stake":10.00,"odds":2.50,"bet_type":"single|acca|bet_builder","legs":["leg1","leg2"]}. For accas set event to "Accumulator", odds to total odds, legs to each selection. Use null for any field not visible in the image.' }
       ]}] })
     });
-    if (!res.ok) return NextResponse.json({ error: 'Claude API error' }, { status: 500 });
+    if (!res.ok) {
+      const errBody = await res.text();
+      return NextResponse.json({ error: `Claude API error (${res.status}): ${errBody.slice(0, 300)}` }, { status: 500 });
+    }
     const data = await res.json();
-    const text = data.content?.[0]?.text || '';
-    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const text = data.content?.find((c: any) => c.type === 'text')?.text || data.content?.[0]?.text || '';
+    if (!text) {
+      return NextResponse.json({ error: `No text in Claude response: ${JSON.stringify(data).slice(0, 300)}` }, { status: 500 });
+    }
+    // Strip markdown fences and find the JSON object even if there's surrounding text
+    let cleaned = text.replace(/```json|```/g, '').trim();
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) cleaned = jsonMatch[0];
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      return NextResponse.json({ error: `Could not parse JSON from response: ${cleaned.slice(0, 300)}` }, { status: 500 });
+    }
     return NextResponse.json({ bet: parsed });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
