@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import Leaderboard from '@/components/Leaderboard';
 import InstallPrompt from '@/components/InstallPrompt';
+import { Trophy } from 'lucide-react';
 
 export default function DashboardPage() {
   return (
@@ -8,8 +9,8 @@ export default function DashboardPage() {
       <Header />
       <div className="space-y-6">
         <section>
-          <h2 className="display-title text-xl mb-3 flex items-center gap-3">
-            <span className="w-1 h-5 bg-gold inline-block" />
+          <h2 className="display-title text-xl mb-3 flex items-center gap-2">
+            <Trophy size={20} strokeWidth={2} style={{ color: 'var(--gold-bright)' }} fill="rgba(232,200,106,0.25)" />
             Group Stage Standings
           </h2>
           <Leaderboard />

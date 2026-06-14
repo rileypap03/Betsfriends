@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { TEAM, STARTING_STAKE, PlayerId } from '@/lib/types';
+import ScanBetButton from '@/components/ScanBetButton';
 
 interface Balance { player_id: PlayerId; balance: number; updated_at: string; }
 
@@ -47,54 +48,59 @@ export default function Leaderboard() {
           const pct = (pnl / STARTING_STAKE) * 100;
           const dir = pnl > 0 ? 'up' : pnl < 0 ? 'down' : 'flat';
           return (
-            <Link
+            <div
               key={member.id}
-              href={`/player/${member.id}`}
-              className="card p-4 block hover:bg-bg-hover transition-colors"
+              className="card p-4"
               style={idx === 0 ? { borderColor: 'var(--gold)' } : {}}
             >
-              <div className="flex items-center gap-3">
-                <div className="font-display text-3xl w-8 text-center shrink-0 text-text-dim"
-                  style={idx === 0 ? { color: 'var(--gold-bright)' } : idx === 1 ? { color: '#B8C5D6' } : idx === 2 ? { color: '#C4854A' } : {}}>
-                  {idx + 1}
-                </div>
-                <div
-                  className="w-12 h-12 rounded-xl shrink-0 bg-cover bg-center border-2"
-                  style={{ backgroundImage: `url(${member.avatar})`, backgroundColor: member.color, borderColor: member.accent }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold">{member.name}</div>
-                  <div className="text-xs mt-0.5" style={{ color: member.accent }}>★ {member.country}</div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div
-                    className="font-display text-2xl"
-                    style={{ color: dir === 'up' ? 'var(--green-bright)' : dir === 'down' ? 'var(--red-bright)' : 'var(--text-muted)' }}
-                  >
-                    {pnl >= 0 ? '+' : '−'}£{Math.abs(pnl).toFixed(2)}
+              <Link href={`/player/${member.id}`} className="block hover:opacity-80 transition-opacity">
+                <div className="flex items-center gap-3">
+                  <div className="font-display text-3xl w-8 text-center shrink-0 text-text-dim"
+                    style={idx === 0 ? { color: 'var(--gold-bright)' } : idx === 1 ? { color: '#B8C5D6' } : idx === 2 ? { color: '#C4854A' } : {}}>
+                    {idx + 1}
                   </div>
                   <div
-                    className="text-xs font-semibold px-2 py-0.5 rounded inline-block mt-1"
-                    style={{
-                      background: dir === 'up' ? 'rgba(0,199,117,0.12)' : dir === 'down' ? 'rgba(255,77,109,0.12)' : 'rgba(138,155,191,0.12)',
-                      color: dir === 'up' ? '#00C775' : dir === 'down' ? '#FF4D6D' : '#8A9BBF',
-                    }}
-                  >
-                    {dir === 'up' ? '▲' : dir === 'down' ? '▼' : '—'} {pct >= 0 ? '+' : '−'}{Math.abs(pct).toFixed(1)}%
+                    className="w-12 h-12 rounded-xl shrink-0 bg-cover bg-center border-2"
+                    style={{ backgroundImage: `url(${member.avatar})`, backgroundColor: member.color, borderColor: member.accent }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold">{member.name}</div>
+                    <div className="text-xs mt-0.5" style={{ color: member.accent }}>★ {member.country}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div
+                      className="font-display text-2xl"
+                      style={{ color: dir === 'up' ? 'var(--green-bright)' : dir === 'down' ? 'var(--red-bright)' : 'var(--text-muted)' }}
+                    >
+                      {pnl >= 0 ? '+' : '−'}£{Math.abs(pnl).toFixed(2)}
+                    </div>
+                    <div
+                      className="text-xs font-semibold px-2 py-0.5 rounded inline-block mt-1"
+                      style={{
+                        background: dir === 'up' ? 'rgba(0,199,117,0.12)' : dir === 'down' ? 'rgba(255,77,109,0.12)' : 'rgba(138,155,191,0.12)',
+                        color: dir === 'up' ? '#00C775' : dir === 'down' ? '#FF4D6D' : '#8A9BBF',
+                      }}
+                    >
+                      {dir === 'up' ? '▲' : dir === 'down' ? '▼' : '—'} {pct >= 0 ? '+' : '−'}{Math.abs(pct).toFixed(1)}%
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
-                <div className="text-xs text-text-muted">
-                  Stake: <span className="text-white">£{STARTING_STAKE}</span>
+                <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
+                  <div className="text-xs text-text-muted">
+                    Stake: <span className="text-white">£{STARTING_STAKE}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="eyebrow">Balance</div>
+                    <div className="font-display text-lg" style={{ color: 'var(--gold-bright)' }}>£{bal.toFixed(2)}</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="eyebrow">Balance</div>
-                  <div className="font-display text-lg" style={{ color: 'var(--gold-bright)' }}>£{bal.toFixed(2)}</div>
-                </div>
+              </Link>
+
+              <div className="mt-3 pt-3 border-t border-white/10">
+                <ScanBetButton playerId={member.id} onAdded={load} />
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>

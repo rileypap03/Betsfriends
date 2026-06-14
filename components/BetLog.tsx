@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { TEAM, PlayerId } from '@/lib/types';
 import { Bet, BetCard, groupBetsByDay } from '@/components/BetCard';
+import { Camera, TriangleAlert } from 'lucide-react';
 
 interface ScannedBet {
   event: string | null;
@@ -177,19 +178,12 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
 
   return (
     <div className="space-y-4">
-      {/* Strategy stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3">
         <div className="card p-4">
-          <div className="eyebrow">At Stake</div>
-          <div className="font-display text-2xl">£{totalStake.toFixed(2)}</div>
-          <div className="text-xs text-text-muted mt-1">{openBets.length} open · max return £{maxReturn.toFixed(2)}</div>
-        </div>
-        <div className={`card p-4 ${conflicts.length > 0 ? '!border-red-500/50' : ''}`} style={conflicts.length > 0 ? { borderColor: 'rgba(228,0,43,0.5)' } : {}}>
-          <div className="eyebrow">Coordination</div>
-          <div className="font-display text-2xl" style={{ color: conflicts.length === 0 ? 'var(--green-bright)' : 'var(--red-bright)' }}>
-            {conflicts.length === 0 ? '✓ Clean' : `⚠ ${conflicts.length} conflict`}
-          </div>
-          <div className="text-xs text-text-muted mt-1">{conflicts.length === 0 ? 'No accidental hedging' : 'Team is betting against itself'}</div>
+          <div className="eyebrow">Open</div>
+          <div className="font-display text-2xl">{openBets.length}</div>
+          <div className="text-xs text-text-muted mt-1">£{totalStake.toFixed(2)} at stake · max return £{maxReturn.toFixed(2)}</div>
         </div>
         <div className="card p-4">
           <div className="eyebrow">Settled</div>
@@ -204,7 +198,7 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
       {conflicts.map((arr, i) => (
         <div key={i} className="card p-3" style={{ borderColor: 'rgba(228,0,43,0.4)', background: 'rgba(228,0,43,0.06)' }}>
           <div className="text-sm flex gap-2">
-            <span>⚠️</span>
+            <TriangleAlert size={16} strokeWidth={2} className="shrink-0 mt-0.5" style={{ color: 'var(--red-bright)' }} fill="rgba(228,0,43,0.2)" />
             <span>
               <strong>{arr[0].event}:</strong>{' '}
               {arr.map((b) => `${TEAM.find((t) => t.id === b.player_id)?.name} on "${b.selection}"`).join(' vs ')}
@@ -218,8 +212,9 @@ export default function BetLog({ prefilledEvent }: { prefilledEvent?: string } =
       <div className="card p-4 space-y-3">
         {!scannedBet && !scanning && (
           <div className="flex flex-col items-center gap-3 py-4">
-            <label className="cursor-pointer btn-primary text-center">
-              📸 Scan Bet Slip
+            <label className="cursor-pointer btn-primary text-center inline-flex items-center gap-2">
+              <Camera size={16} strokeWidth={2} fill="rgba(10,10,10,0.15)" />
+              Scan Bet Slip
               <input type="file" accept="image/*" className="hidden" onChange={handleScreenshot} />
             </label>
             <button onClick={() => setShowManualForm((v) => !v)} className="text-xs text-text-muted underline">
