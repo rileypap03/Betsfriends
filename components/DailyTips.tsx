@@ -68,7 +68,7 @@ export default function DailyTips() {
     <div className="card p-4 space-y-3">
       <div className="eyebrow flex items-center gap-2">
         <Sparkles size={14} strokeWidth={2} style={{ color: 'var(--gold-bright)' }} fill="rgba(232,200,106,0.2)" />
-        Daily Tips · based on recent form
+        Daily Tips · form, standings & head-to-head
       </div>
       <div className="space-y-2">
         {tips.map((t, i) => (
@@ -78,7 +78,7 @@ export default function DailyTips() {
           </div>
         ))}
       </div>
-      <div className="text-[10px] text-text-dim">Just for fun — based on recent results only, no odds or predictions data.</div>
+      <div className="text-[10px] text-text-dim">Just for fun — based on form, group standings & head-to-head, no odds or predictions data.</div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getFixtures, getTeamRecentForm } from '@/lib/api-football';
+import { getFixtures, getTeamRecentForm, getStandings, getHeadToHead } from '@/lib/api-football';
+import { groupForTeam } from '@/lib/wc2026-groups';
 import { supabase } from '@/lib/supabase';
 
 export const revalidate = 0;
@@ -44,6 +45,49 @@ function formString(games: any[], teamName: string): string {
     .join(', ') || 'no recent form data';
 }
 
+function h2hString(games: any[], homeName: string, awayName: string): string {
+  if (!games || games.length === 0) return 'no recent head-to-head meetings on record';
+  return games
+    .slice(0, 3)
+    .map((g) => {
+      const home = g.teams.home.name;
+      const away = g.teams.away.name;
+      const hg = g.goals.home;
+      const ag = g.goals.away;
+      if (hg === null || ag === null) return null;
+      return `${home} ${hg}-${ag} ${away}`;
+    })
+    .filter(Boolean)
+    .join(', ') || 'no recent head-to-head meetings on record';
+}
+
+// Build a quick lookup of group standings rows by team id, using the
+// official WC2026 group rosters to bucket the combined 48-team table
+// (see lib/wc2026-groups.ts for why this bucketing is needed).
+function buildStandingsLookup(standings: any[]): Map<number, any> {
+  const lookup = new Map<number, any>();
+  const totals = (standings || []).filter((s: any) => s.type === 'TOTAL');
+  const allRows: any[] = totals.flatMap((s: any) => s.table || []);
+  for (const row of allRows) {
+    if (row.team?.id) lookup.set(row.team.id, row);
+  }
+  return lookup;
+}
+
+function standingsString(row: any, teamName: string): string {
+  if (!row) return 'no group standings data';
+  const group = groupForTeam(row.team || {});
+  const groupLabel = group ? `Group ${group}` : 'group';
+  return `${groupLabel} — ${row.position ?? '?'}${ordinal(row.position)} place, ${row.points ?? 0} pts from ${row.playedGames ?? 0} games (GD ${row.goalDifference >= 0 ? '+' : ''}${row.goalDifference ?? 0})`;
+}
+
+function ordinal(n?: number): string {
+  if (!n) return '';
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+}
+
 export async function GET() {
   try {
     const today = new Date().toISOString().slice(0, 10);
@@ -65,7 +109,7 @@ export async function GET() {
         return f.fixture.status.short === 'NS' && t >= now && t <= windowEnd;
       })
       .sort((a: any, b: any) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime())
-      .slice(0, 4); // cap to avoid rate limits (10 req/min on football-data free tier)
+      .slice(0, 3); // cap to avoid rate limits (10 req/min on football-data free tier)
 
     if (upcoming.length === 0) {
       const empty = { tips: [], generatedAt: new Date().toISOString(), message: 'No matches in the next 48 hours.' };
@@ -73,28 +117,40 @@ export async function GET() {
       return NextResponse.json(empty);
     }
 
-    // Gather recent form for each team involved (sequential to respect rate limit)
+    // One shared standings call for group-position context on every match
+    const standings = await getStandings().catch(() => []);
+    const standingsLookup = buildStandingsLookup(standings);
+
+    // Gather recent form (+ H2H for the soonest 2 matches) — sequential to respect rate limit
     const matchSummaries: string[] = [];
-    for (const f of upcoming) {
+    for (const [i, f] of upcoming.entries()) {
       const home = f.teams.home;
       const away = f.teams.away;
-      const [homeForm, awayForm] = await Promise.all([
+      const [homeForm, awayForm, h2h] = await Promise.all([
         getTeamRecentForm(home.id, 5).catch(() => []),
         getTeamRecentForm(away.id, 5).catch(() => []),
+        i < 2 ? getHeadToHead(home.id, away.id).catch(() => []) : Promise.resolve([]),
       ]);
       const date = new Date(f.fixture.date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-      matchSummaries.push(
-        `${date} — ${home.name} vs ${away.name} (${f.league?.round || ''})\n` +
-        `  ${home.name} recent form: ${formString(homeForm, home.name)}\n` +
-        `  ${away.name} recent form: ${formString(awayForm, away.name)}`
-      );
+      const lines = [
+        `${date} — ${home.name} vs ${away.name} (${f.league?.round || ''})`,
+        `  ${home.name} recent form: ${formString(homeForm, home.name)}`,
+        `  ${away.name} recent form: ${formString(awayForm, away.name)}`,
+        `  ${home.name} standings: ${standingsString(standingsLookup.get(home.id), home.name)}`,
+        `  ${away.name} standings: ${standingsString(standingsLookup.get(away.id), away.name)}`,
+      ];
+      if (i < 2) {
+        lines.push(`  Head-to-head (most recent first): ${h2hString(h2h, home.name, away.name)}`);
+      }
+      matchSummaries.push(lines.join('\n'));
     }
 
     const prompt =
       `You are a betting analyst for a small friends' World Cup 2026 sweepstake group called BetsFriends. ` +
-      `Based ONLY on the recent form data below (no odds data available), write 2-3 short, punchy daily tips ` +
-      `for upcoming matches. Each tip should reference a specific match and form trend, and suggest what kind of ` +
-      `bet might be interesting (e.g. "X to win", "Both teams to score", "Over 2.5 goals") with a brief reason. ` +
+      `Based ONLY on the data below (recent form, group standings, and head-to-head history — no odds data available), ` +
+      `write 2-3 short, punchy daily tips for upcoming matches. Each tip should reference a specific match and a concrete ` +
+      `trend from the data (form, standings pressure, or head-to-head pattern), and suggest what kind of ` +
+      `bet might be interesting (e.g. "X to win", "Both teams to score", "Over 2.5 goals", "Draw no bet") with a brief reason. ` +
       `Keep each tip to 1-2 sentences, casual tone suitable for a group chat. Do not invent odds or stats not given. ` +
       `Include a short disclaimer-free caveat that this is just for fun, not professional advice — but keep it brief.\n\n` +
       `Upcoming matches:\n${matchSummaries.join('\n\n')}\n\n` +
