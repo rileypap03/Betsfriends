@@ -2,12 +2,28 @@
 
 import { useEffect, useState } from 'react';
 
+const SPLASH_KEY = 'betsfriends_splash_shown';
+
 export default function SplashGate({ children }: { children: React.ReactNode }) {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Show splash for ~1.4s then fade out
+    // Only show the splash once per browser session — not on every
+    // page navigation (e.g. opening a player or team page).
+    let alreadyShown = false;
+    try {
+      alreadyShown = sessionStorage.getItem(SPLASH_KEY) === '1';
+    } catch {
+      // sessionStorage unavailable (e.g. private mode) — just skip the splash
+      alreadyShown = true;
+    }
+
+    if (alreadyShown) return;
+
+    setShow(true);
+    try { sessionStorage.setItem(SPLASH_KEY, '1'); } catch {}
+
     const fadeTimer = setTimeout(() => setFadeOut(true), 1400);
     const hideTimer = setTimeout(() => setShow(false), 1900);
     return () => {
