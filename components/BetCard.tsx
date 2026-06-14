@@ -12,6 +12,7 @@ export interface Bet {
   odds: number;
   status: 'open' | 'won' | 'lost' | 'void';
   created_at: string;
+  settled_at?: string | null;
 }
 
 export function groupBetsByDay(bets: Bet[]): { dateKey: string; label: string; items: Bet[] }[] {
