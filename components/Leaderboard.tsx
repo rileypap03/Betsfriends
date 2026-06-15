@@ -62,14 +62,14 @@ export default function Leaderboard() {
                           className="flex-1 h-3"
                           style={{
                             background: idx === 0 ? 'var(--gold-bright)' : idx === 1 ? '#B8C5D6' : '#C4854A',
-                            clipPath: 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)',
+                            clipPath: 'polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%)',
                           }}
                         />
                         <div
                           className="flex-1 h-3"
                           style={{
                             background: idx === 0 ? 'var(--gold)' : idx === 1 ? '#8A9BBF' : '#9A6B3A',
-                            clipPath: 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)',
+                            clipPath: 'polygon(0 30%, 50% 0, 100% 30%, 100% 100%, 0 100%)',
                           }}
                         />
                       </div>
