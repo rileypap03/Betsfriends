@@ -1,12 +1,14 @@
 'use client';
 import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get('next') || '/';
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -44,9 +46,20 @@ function LoginForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="eyebrow block mb-2">Team password</label>
-            <input type="password" autoFocus value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-base w-full" placeholder="Enter shared password" />
+            <div className="relative">
+              <input type={showPassword ? 'text' : 'password'} autoFocus value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-base w-full pr-10" placeholder="Enter shared password" />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-white transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} strokeWidth={2} /> : <Eye size={18} strokeWidth={2} />}
+              </button>
+            </div>
           </div>
           {error && <p style={{color:'var(--red-bright)'}} className="text-sm">{error}</p>}
           <button type="submit" disabled={loading || !password} className="btn-primary w-full">
