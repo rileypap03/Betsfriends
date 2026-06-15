@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { TEAM, STARTING_STAKE, PlayerId } from '@/lib/types';
 import { Bet } from '@/components/BetCard';
+import { Trophy } from 'lucide-react';
 
 type ViewMode = 'team' | PlayerId;
 type RangeMode = '1D' | '1W' | '2W' | '3W' | '4W' | 'ALL';
@@ -77,18 +78,33 @@ export default function BalanceChart() {
       <div className="flex gap-1 card p-1 overflow-x-auto">
         <button
           onClick={() => setView('team')}
-          className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
+          className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap flex flex-col items-center gap-1"
           style={view === 'team' ? { background: 'rgba(255,255,255,0.1)', color: 'white' } : { color: '#9A9A9A' }}
         >
+          <Trophy
+            size={18}
+            strokeWidth={2}
+            style={{ color: view === 'team' ? 'var(--gold-bright)' : '#5A5A5A' }}
+            fill={view === 'team' ? 'rgba(232,200,106,0.25)' : 'none'}
+          />
           Team
         </button>
         {TEAM.map((t) => (
           <button
             key={t.id}
             onClick={() => setView(t.id)}
-            className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
+            className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap flex flex-col items-center gap-1"
             style={view === t.id ? { background: 'rgba(255,255,255,0.1)', color: 'white' } : { color: '#9A9A9A' }}
           >
+            <div
+              className="w-[18px] h-[18px] rounded-full bg-cover bg-center shrink-0"
+              style={{
+                backgroundImage: `url(${t.avatar})`,
+                backgroundColor: t.color,
+                outline: view === t.id ? `2px solid ${t.accent}` : '2px solid transparent',
+                outlineOffset: '1px',
+              }}
+            />
             {t.name}
           </button>
         ))}
