@@ -186,9 +186,11 @@ interface SeriesPoint {
   riley: number;
 }
 
-function buildSeries(bets: Bet[]): SeriesPoint[] {
-  if (bets.length === 0) return [];
+// World Cup 2026 kicked off on 11 June 2026 — the P&L chart always starts
+// from this date, regardless of when the first bet was actually placed.
+const COMPETITION_START = new Date('2026-06-11T00:00:00Z').getTime();
 
+function buildSeries(bets: Bet[]): SeriesPoint[] {
   // Build a list of balance-changing events: { ts, player_id, delta }
   type Ev = { ts: number; player_id: PlayerId; delta: number };
   const events: Ev[] = [];
@@ -217,13 +219,15 @@ function buildSeries(bets: Bet[]): SeriesPoint[] {
   const running: Record<PlayerId, number> = {} as any;
   for (const t of TEAM) running[t.id] = STARTING_STAKE;
 
-  // Starting point
+  // Always start the series at the competition's kickoff date, even if
+  // there's no bet activity yet — gives the chart a fixed, meaningful start.
   const points: SeriesPoint[] = [];
-  const firstTs = events[0].ts;
-  points.push(makePoint(new Date(firstTs - 1), running));
+  points.push(makePoint(new Date(COMPETITION_START), running, 'Kickoff'));
 
-  let lastTs = -1;
+  let lastTs = COMPETITION_START;
   for (const ev of events) {
+    // Ignore any stray events that somehow predate kickoff
+    if (ev.ts < COMPETITION_START) continue;
     running[ev.player_id] = Math.round((running[ev.player_id] + ev.delta) * 100) / 100;
     if (ev.ts === lastTs) {
       // Same timestamp — update the last point in place
