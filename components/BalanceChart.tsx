@@ -16,11 +16,22 @@ import { TEAM, STARTING_STAKE, PlayerId } from '@/lib/types';
 import { Bet } from '@/components/BetCard';
 
 type ViewMode = 'team' | PlayerId;
+type RangeMode = '1D' | '1W' | '2W' | '3W' | '4W' | 'ALL';
+
+const RANGE_MS: Record<RangeMode, number | null> = {
+  '1D': 1 * 24 * 60 * 60 * 1000,
+  '1W': 7 * 24 * 60 * 60 * 1000,
+  '2W': 14 * 24 * 60 * 60 * 1000,
+  '3W': 21 * 24 * 60 * 60 * 1000,
+  '4W': 28 * 24 * 60 * 60 * 1000,
+  'ALL': null,
+};
 
 export default function BalanceChart() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>('team');
+  const [range, setRange] = useState<RangeMode>('1W');
 
   useEffect(() => {
     fetch('/api/bets')
@@ -42,6 +53,8 @@ export default function BalanceChart() {
       </div>
     );
   }
+
+  const filteredSeries = filterSeriesByRange(series, range);
 
   const lineDefs =
     view === 'team'
@@ -100,10 +113,29 @@ export default function BalanceChart() {
         </div>
       </div>
 
+      {/* Range selector */}
+      <div className="flex gap-1 card p-1 overflow-x-auto">
+        {(['1D', '1W', '2W', '3W', '4W', 'ALL'] as RangeMode[]).map((r) => (
+          <button
+            key={r}
+            onClick={() => setRange(r)}
+            className="flex-1 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
+            style={range === r ? { background: 'rgba(201,168,76,0.18)', color: '#E8C86A' } : { color: '#9A9A9A' }}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+
       {/* Chart */}
       <div className="card p-3" style={{ height: 260 }}>
+        {filteredSeries.length < 2 ? (
+          <div className="h-full flex items-center justify-center text-text-dim text-sm text-center px-4">
+            No balance changes in this period.
+          </div>
+        ) : (
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={series} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+          <LineChart data={filteredSeries} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
             <XAxis
               dataKey="label"
@@ -138,6 +170,7 @@ export default function BalanceChart() {
             ))}
           </LineChart>
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
@@ -215,4 +248,42 @@ function makePoint(date: Date, balances: Record<PlayerId, number>, label?: strin
     roberto: balances.roberto,
     riley: balances.riley,
   };
+}
+
+function filterSeriesByRange(series: SeriesPoint[], range: RangeMode): SeriesPoint[] {
+  const ms = RANGE_MS[range];
+  if (ms === null) return series; // ALL
+
+  const cutoff = Date.now() - ms;
+  const inRange = series.filter((p) => p.ts >= cutoff);
+  const before = series.filter((p) => p.ts < cutoff);
+
+  let result: SeriesPoint[];
+  if (before.length > 0) {
+    // Carry the last known balances forward to the cutoff so the line
+    // starts at the right value rather than appearing to jump from zero.
+    const last = before[before.length - 1];
+    const anchor: SeriesPoint = { ...last, ts: cutoff, label: relabel(new Date(cutoff), range) };
+    result = [anchor, ...inRange];
+  } else {
+    result = inRange;
+  }
+
+  // For short ranges, relabel points with time-of-day so same-day points
+  // are distinguishable on the x-axis.
+  if (range === '1D' || range === '1W') {
+    result = result.map((p) => ({ ...p, label: relabel(new Date(p.ts), range) }));
+  }
+
+  return result;
+}
+
+function relabel(date: Date, range: RangeMode): string {
+  if (range === '1D') {
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+  if (range === '1W') {
+    return date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit' });
+  }
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
