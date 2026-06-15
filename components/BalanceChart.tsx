@@ -167,9 +167,7 @@ export default function BalanceChart() {
               width={48}
             />
             <Tooltip
-              contentStyle={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: '#9A9A9A' }}
-              formatter={(value: number, name: string) => [`£${value.toFixed(2)}`, name]}
+              content={<ChartTooltip view={view} />}
             />
             <ReferenceLine y={baseline} stroke="rgba(255,255,255,0.15)" strokeDasharray="4 4" />
             {lineDefs.map((l) => (
@@ -192,6 +190,55 @@ export default function BalanceChart() {
   );
 }
 
+function ChartTooltip({ active, payload, label, view }: any) {
+  if (!active || !payload || payload.length === 0) return null;
+  const point: SeriesPoint = payload[0]?.payload;
+  if (!point) return null;
+
+  const seriesName = payload[0].name;
+  const seriesValue = payload[0].value;
+  const seriesColor = payload[0].color;
+
+  const kindMeta: Record<BetEventInfo['kind'], { label: string; color: string }> = {
+    placed: { label: 'placed', color: '#8A9BBF' },
+    won: { label: 'won', color: '#00C775' },
+    lost: { label: 'lost', color: '#FF4D6D' },
+    void: { label: 'voided', color: '#9A9A9A' },
+  };
+
+  // On a player view, only show that player's bet events; on team view, show everyone's
+  const events = (point.betEvents || []).filter((be) => view === 'team' || be.player_id === view);
+
+  return (
+    <div style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12, padding: '8px 10px', maxWidth: 220 }}>
+      <div style={{ color: '#9A9A9A', marginBottom: 4 }}>{label}</div>
+      <div style={{ color: seriesColor, fontWeight: 600, marginBottom: events.length ? 6 : 0 }}>
+        {seriesName}: £{Number(seriesValue).toFixed(2)}
+      </div>
+      {events.map((be, i) => {
+        const player = TEAM.find((t) => t.id === be.player_id);
+        const meta = kindMeta[be.kind];
+        return (
+          <div key={i} style={{ paddingTop: i > 0 ? 4 : 0, borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : undefined, marginTop: i > 0 ? 4 : 0 }}>
+            <span style={{ color: 'white', fontWeight: 600 }}>{player?.name}</span>{' '}
+            <span style={{ color: meta.color }}>{meta.label}</span>{' '}
+            <span style={{ color: '#9A9A9A' }}>a bet on</span>{' '}
+            <span style={{ color: 'white' }}>{be.event}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
+interface BetEventInfo {
+  player_id: PlayerId;
+  event: string;
+  kind: 'placed' | 'won' | 'lost' | 'void';
+  delta: number;
+}
+
 interface SeriesPoint {
   label: string;
   ts: number;
@@ -200,6 +247,7 @@ interface SeriesPoint {
   miller: number;
   roberto: number;
   riley: number;
+  betEvents?: BetEventInfo[];
 }
 
 // World Cup 2026 kicked off on 11 June 2026 — the P&L chart always starts
@@ -207,8 +255,8 @@ interface SeriesPoint {
 const COMPETITION_START = new Date('2026-06-11T00:00:00Z').getTime();
 
 function buildSeries(bets: Bet[]): SeriesPoint[] {
-  // Build a list of balance-changing events: { ts, player_id, delta }
-  type Ev = { ts: number; player_id: PlayerId; delta: number };
+  // Build a list of balance-changing events: { ts, player_id, delta, ... }
+  type Ev = { ts: number; player_id: PlayerId; delta: number; event: string; kind: BetEventInfo['kind'] };
   const events: Ev[] = [];
 
   for (const b of bets) {
@@ -216,16 +264,17 @@ function buildSeries(bets: Bet[]): SeriesPoint[] {
     const odds = Number(b.odds);
     const placedAt = new Date(b.created_at).getTime();
     // Stake is deducted the moment the bet is placed
-    events.push({ ts: placedAt, player_id: b.player_id, delta: -stake });
+    events.push({ ts: placedAt, player_id: b.player_id, delta: -stake, event: b.event, kind: 'placed' });
 
     if (b.status !== 'open' && b.settled_at) {
       const settledAt = new Date(b.settled_at).getTime();
       if (b.status === 'won') {
-        events.push({ ts: settledAt, player_id: b.player_id, delta: stake * odds }); // returns stake + profit
+        events.push({ ts: settledAt, player_id: b.player_id, delta: stake * odds, event: b.event, kind: 'won' }); // returns stake + profit
+      } else if (b.status === 'lost') {
+        events.push({ ts: settledAt, player_id: b.player_id, delta: 0, event: b.event, kind: 'lost' }); // stake stays deducted, no balance change but worth noting
       } else if (b.status === 'void') {
-        events.push({ ts: settledAt, player_id: b.player_id, delta: stake }); // refund
+        events.push({ ts: settledAt, player_id: b.player_id, delta: stake, event: b.event, kind: 'void' }); // refund
       }
-      // 'lost' → no further change, stake stays deducted
     }
   }
 
@@ -245,11 +294,13 @@ function buildSeries(bets: Bet[]): SeriesPoint[] {
     // Ignore any stray events that somehow predate kickoff
     if (ev.ts < COMPETITION_START) continue;
     running[ev.player_id] = Math.round((running[ev.player_id] + ev.delta) * 100) / 100;
-    if (ev.ts === lastTs) {
-      // Same timestamp — update the last point in place
-      points[points.length - 1] = makePoint(new Date(ev.ts), running, points[points.length - 1].label);
+    const info: BetEventInfo = { player_id: ev.player_id, event: ev.event, kind: ev.kind, delta: ev.delta };
+    if (ev.ts === lastTs && points.length > 1) {
+      // Same timestamp — update the last point in place, accumulating events
+      const prev = points[points.length - 1];
+      points[points.length - 1] = makePoint(new Date(ev.ts), running, prev.label, [...(prev.betEvents || []), info]);
     } else {
-      points.push(makePoint(new Date(ev.ts), running));
+      points.push(makePoint(new Date(ev.ts), running, undefined, [info]));
       lastTs = ev.ts;
     }
   }
@@ -257,7 +308,7 @@ function buildSeries(bets: Bet[]): SeriesPoint[] {
   return points;
 }
 
-function makePoint(date: Date, balances: Record<PlayerId, number>, label?: string): SeriesPoint {
+function makePoint(date: Date, balances: Record<PlayerId, number>, label?: string, betEvents?: BetEventInfo[]): SeriesPoint {
   const team = TEAM.reduce((s, t) => s + balances[t.id], 0);
   return {
     label: label || date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
@@ -267,6 +318,7 @@ function makePoint(date: Date, balances: Record<PlayerId, number>, label?: strin
     miller: balances.miller,
     roberto: balances.roberto,
     riley: balances.riley,
+    betEvents,
   };
 }
 
