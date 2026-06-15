@@ -85,9 +85,9 @@ export default function BalanceChart() {
           className="flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap flex flex-col items-center gap-1"
           style={view === 'team' ? { background: 'rgba(255,255,255,0.1)', color: 'white' } : { color: '#9A9A9A' }}
         >
-          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 flex items-center justify-center shrink-0">
             <Trophy
-              size={20}
+              size={22}
               strokeWidth={2}
               style={{ color: view === 'team' ? 'var(--gold-bright)' : '#5A5A5A' }}
               fill={view === 'team' ? 'rgba(232,200,106,0.25)' : 'none'}
@@ -103,7 +103,7 @@ export default function BalanceChart() {
             style={view === t.id ? { background: 'rgba(255,255,255,0.1)', color: 'white' } : { color: '#9A9A9A' }}
           >
             <div
-              className="w-8 h-8 rounded-full bg-cover bg-center shrink-0"
+              className="w-9 h-9 rounded-full bg-cover bg-center shrink-0"
               style={{
                 backgroundImage: `url(${t.avatar})`,
                 backgroundColor: t.color,
