@@ -24,8 +24,8 @@ export default function SplashGate({ children }: { children: React.ReactNode }) 
     setShow(true);
     try { sessionStorage.setItem(SPLASH_KEY, '1'); } catch {}
 
-    const fadeTimer = setTimeout(() => setFadeOut(true), 1400);
-    const hideTimer = setTimeout(() => setShow(false), 1900);
+    const fadeTimer = setTimeout(() => setFadeOut(true), 2600);
+    const hideTimer = setTimeout(() => setShow(false), 3100);
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(hideTimer);
