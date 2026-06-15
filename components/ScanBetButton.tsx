@@ -113,7 +113,7 @@ export default function ScanBetButton({ playerId, onAdded }: { playerId: PlayerI
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={confirm} disabled={submitting} className="btn-primary flex-1 !text-xs">
+            <button onClick={confirm} disabled={submitting} className="btn-primary flex-1 !text-sm !py-2.5">
               {submitting ? 'Adding...' : '✓ Confirm & Add'}
             </button>
             <button onClick={discard} className="btn-secondary !text-xs">Discard</button>
