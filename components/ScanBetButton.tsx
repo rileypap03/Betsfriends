@@ -76,8 +76,8 @@ export default function ScanBetButton({ playerId, onAdded }: { playerId: PlayerI
   return (
     <div onClick={(e) => e.stopPropagation()}>
       {!scannedBet && !scanning && (
-        <label className="cursor-pointer btn-secondary !text-[11px] !px-2 !py-1 inline-flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-          <Camera size={13} strokeWidth={2} fill="rgba(232,200,106,0.15)" />
+        <label className="cursor-pointer btn-primary !text-sm !px-4 !py-2.5 inline-flex items-center gap-2 w-full justify-center" onClick={(e) => e.stopPropagation()}>
+          <Camera size={18} strokeWidth={2} fill="rgba(10,10,10,0.15)" />
           Scan bet
           <input type="file" accept="image/*" className="hidden" onChange={handleScreenshot} onClick={(e) => e.stopPropagation()} />
         </label>
