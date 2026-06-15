@@ -57,11 +57,6 @@ export default function BalanceChart() {
 
   const filteredSeries = filterSeriesByRange(series, range);
 
-  const lineDefs =
-    view === 'team'
-      ? [{ key: 'team', name: 'Team Total', color: '#C9A84C' }]
-      : [{ key: view, name: TEAM.find((t) => t.id === view)?.name || view, color: TEAM.find((t) => t.id === view)?.accent || '#C9A84C' }];
-
   // Reference line: starting baseline (team = 4x stake, individual = stake)
   const baseline = view === 'team' ? TEAM.length * STARTING_STAKE : STARTING_STAKE;
 
@@ -71,6 +66,15 @@ export default function BalanceChart() {
   const pnl = currentValue - baseline;
   const pnlPct = (pnl / baseline) * 100;
   const dir = pnl > 0 ? 'up' : pnl < 0 ? 'down' : 'flat';
+
+  // Line color always reflects profit/loss (green/red), never a player's
+  // national-team accent colour — England red would misleadingly read as "loss".
+  const lineColor = dir === 'up' ? '#00C775' : dir === 'down' ? '#FF4D6D' : '#8A9BBF';
+
+  const lineDefs =
+    view === 'team'
+      ? [{ key: 'team', name: 'Team Total', color: lineColor }]
+      : [{ key: view, name: TEAM.find((t) => t.id === view)?.name || view, color: lineColor }];
 
   return (
     <div className="space-y-3">
@@ -97,11 +101,11 @@ export default function BalanceChart() {
             style={view === t.id ? { background: 'rgba(255,255,255,0.1)', color: 'white' } : { color: '#9A9A9A' }}
           >
             <div
-              className="w-[18px] h-[18px] rounded-full bg-cover bg-center shrink-0"
+              className="w-7 h-7 rounded-full bg-cover bg-center shrink-0"
               style={{
                 backgroundImage: `url(${t.avatar})`,
                 backgroundColor: t.color,
-                outline: view === t.id ? `2px solid ${t.accent}` : '2px solid transparent',
+                outline: view === t.id ? '2px solid var(--gold-bright)' : '2px solid transparent',
                 outlineOffset: '1px',
               }}
             />
