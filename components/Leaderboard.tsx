@@ -51,7 +51,6 @@ export default function Leaderboard() {
             <div
               key={member.id}
               className="card p-4"
-              style={idx === 0 ? { borderColor: 'var(--gold)' } : {}}
             >
               <Link href={`/player/${member.id}`} className="block hover:opacity-80 transition-opacity">
                 <div className="flex items-center gap-3">
