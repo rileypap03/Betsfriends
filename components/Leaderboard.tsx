@@ -54,10 +54,23 @@ export default function Leaderboard() {
             >
               <Link href={`/player/${member.id}`} className="block hover:opacity-80 transition-opacity">
                 <div className="flex items-center gap-3">
-                  <div className="font-display text-3xl w-8 text-center shrink-0 text-text-dim"
-                    style={idx === 0 ? { color: 'var(--gold-bright)' } : idx === 1 ? { color: '#B8C5D6' } : idx === 2 ? { color: '#C4854A' } : {}}>
-                    {idx + 1}
-                  </div>
+                  {idx < 3 ? (
+                    <div
+                      className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center font-display text-lg border-2"
+                      style={{
+                        background:
+                          idx === 0 ? 'rgba(232,200,106,0.15)' : idx === 1 ? 'rgba(184,197,214,0.15)' : 'rgba(196,133,74,0.15)',
+                        borderColor: idx === 0 ? 'var(--gold-bright)' : idx === 1 ? '#B8C5D6' : '#C4854A',
+                        color: idx === 0 ? 'var(--gold-bright)' : idx === 1 ? '#B8C5D6' : '#C4854A',
+                      }}
+                    >
+                      {idx + 1}
+                    </div>
+                  ) : (
+                    <div className="font-display text-3xl w-9 text-center shrink-0 text-text-dim">
+                      {idx + 1}
+                    </div>
+                  )}
                   <div
                     className="w-12 h-12 rounded-xl shrink-0 bg-cover bg-center border-2"
                     style={{ backgroundImage: `url(${member.avatar})`, backgroundColor: member.color, borderColor: 'var(--gold-bright)' }}
