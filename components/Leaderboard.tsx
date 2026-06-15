@@ -61,7 +61,7 @@ export default function Leaderboard() {
                   </div>
                   <div
                     className="w-12 h-12 rounded-xl shrink-0 bg-cover bg-center border-2"
-                    style={{ backgroundImage: `url(${member.avatar})`, backgroundColor: member.color, borderColor: member.accent }}
+                    style={{ backgroundImage: `url(${member.avatar})`, backgroundColor: member.color, borderColor: 'var(--gold-bright)' }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold">{member.name}</div>

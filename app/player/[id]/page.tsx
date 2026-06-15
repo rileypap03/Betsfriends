@@ -79,8 +79,8 @@ export default function PlayerPage({ params }: { params: { id: string } }) {
             style={{
               backgroundImage: `url(${player.avatar})`,
               backgroundColor: player.color,
-              borderColor: player.accent,
-              boxShadow: `0 0 0 6px rgba(0,0,0,0.2), 0 8px 32px ${player.accent}40`,
+              borderColor: 'var(--gold-bright)',
+              boxShadow: '0 0 0 6px rgba(0,0,0,0.2), 0 8px 32px rgba(232,200,106,0.25)',
             }}
           />
           <div className="display-title text-3xl md:text-4xl italic text-center mt-1">{player.name}</div>
