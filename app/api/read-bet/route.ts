@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 500, messages: [{ role: 'user', content: [
         { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-        { type: 'text', text: 'This is a betting app screenshot. Return ONLY valid JSON (no markdown, no preamble): {"event":"match name","selection":"what was bet on","stake":10.00,"odds":2.50,"bet_type":"single|acca|bet_builder","legs":["leg1","leg2"]}. For accas set event to "Accumulator", odds to total odds, legs to each selection. Use null for any field not visible in the image.' }
+        { type: 'text', text: 'This is a betting slip screenshot. Return ONLY valid JSON (no markdown, no preamble): {"event":"match name","selection":"what was bet on","stake":10.00,"odds":2.50,"bet_type":"single|acca|bet_builder","legs":["leg1","leg2"],"status":"open|won|lost|cashout","returns":null}. For accas set event to "Accumulator", odds to total odds, legs to each selection. For status: if the slip shows a win, payout, or settled as winner set "won"; if it shows a loss or loser set "lost"; if it shows "Cash Out" or a partial payout set "cashout"; otherwise set "open". For returns: if the slip shows a payout or cash out amount, set that number, otherwise null. Use null for any other field not visible in the image.' }
       ]}] })
     });
     if (!res.ok) {

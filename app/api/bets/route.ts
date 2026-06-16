@@ -19,7 +19,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { player_id, fixture_id, event, selection, stake, odds, screenshot_url } = body;
+    const { player_id, fixture_id, event, selection, stake, odds, screenshot_url, status: incomingStatus } = body;
 
     if (!['fitz','miller','roberto','riley'].includes(player_id)) {
       return NextResponse.json({ error: 'Invalid player_id' }, { status: 400 });
@@ -29,6 +29,10 @@ export async function POST(req: Request) {
     const o = parseFloat(odds);
     if (isNaN(s) || s <= 0) return NextResponse.json({ error: 'Invalid stake' }, { status: 400 });
     if (isNaN(o) || o < 1.01) return NextResponse.json({ error: 'Invalid odds' }, { status: 400 });
+
+    const validStatuses = ['open', 'won', 'lost', 'void', 'cashout'];
+    const status = validStatuses.includes(incomingStatus) ? incomingStatus : 'open';
+    const settled_at = status !== 'open' ? new Date().toISOString() : null;
 
     const { data, error } = await supabase()
       .from('bets')
@@ -40,7 +44,8 @@ export async function POST(req: Request) {
         stake: s,
         odds: o,
         screenshot_url: screenshot_url || null,
-        status: 'open',
+        status,
+        settled_at,
       })
       .select()
       .single();

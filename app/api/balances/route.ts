@@ -26,6 +26,10 @@ export async function GET() {
         balances[pid] -= stake;
       } else if (b.status === 'won') {
         balances[pid] += stake * odds - stake;
+      } else if (b.status === 'cashout') {
+        // Cashout: stake was at risk but returned (with some profit).
+        // Since we don't store the exact return amount, treat as stake refunded
+        // (conservative; no net balance change). Improve if we add returns field.
       }
       // 'void' → no change
     });

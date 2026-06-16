@@ -10,7 +10,7 @@ export interface Bet {
   selection: string;
   stake: number;
   odds: number;
-  status: 'open' | 'won' | 'lost' | 'void';
+  status: 'open' | 'won' | 'lost' | 'void' | 'cashout';
   created_at: string;
   settled_at?: string | null;
 }
@@ -90,9 +90,9 @@ export function BetCard({ bet, isConflict, showPlayer = true, onSetStatus, onDel
             <div className="font-display">{odds.toFixed(2)}</div>
           </div>
           <div>
-            <div className="text-[10px] eyebrow">{bet.status === 'open' ? 'Potential' : bet.status === 'won' ? 'Won' : bet.status === 'lost' ? 'Lost' : '—'}</div>
+            <div className="text-[10px] eyebrow">{bet.status === 'open' ? 'Potential' : bet.status === 'won' ? 'Won' : bet.status === 'lost' ? 'Lost' : bet.status === 'cashout' ? 'Cash Out' : '—'}</div>
             <div className="font-display" style={{ color: bet.status === 'won' ? 'var(--green-bright)' : bet.status === 'lost' ? 'var(--red-bright)' : 'var(--gold-bright)' }}>
-              {bet.status === 'lost' ? `−£${stake.toFixed(2)}` : bet.status === 'won' ? `+£${profit.toFixed(2)}` : bet.status === 'void' ? 'VOID' : `£${potential.toFixed(2)}`}
+              {bet.status === 'lost' ? `−£${stake.toFixed(2)}` : bet.status === 'won' ? `+£${profit.toFixed(2)}` : bet.status === 'cashout' ? '⚡ CASH OUT' : bet.status === 'void' ? 'VOID' : `£${potential.toFixed(2)}`}
             </div>
           </div>
         </div>
